@@ -398,6 +398,7 @@ svg.luximgoverlay {
     padding: 15px 15px 20px;
     text-align: center;
     position: relative;
+    overflow-x: scroll;
 }
 
 .topbook {
@@ -1154,6 +1155,11 @@ input::-webkit-inner-spin-button {
     height: 100%;
     border-radius: 8px 8px 0px 0px;
     background: linear-gradient(180deg, rgba(217, 217, 217, 0.00) 0%, rgba(43, 43, 43, 0.30) 43.01%, #000 100%);
+}
+
+.amenities{
+    display: flex;
+    gap: 5px;
 }
 
 .AuthcloseIcon {
@@ -2006,6 +2012,10 @@ hr {
     padding: 10px 15px !important;
     font-size: 14px !important;
     font-weight: 400;
+}
+
+.fileInput {
+    height: 100px;
 }
 
 .mobileinput {

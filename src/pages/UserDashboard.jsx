@@ -107,7 +107,7 @@ const UserDashboard = () => {
     try {
       const response = await API.get("/payments/payment");
       setPaymentHistory(Array.isArray(response.data.payments) ? response.data.payments : []);
-      console.log("respnse.data checking",response.data.payments)
+      console.log("respnse.data checking", response.data.payments)
     } catch (error) {
       console.error("Error fetching payment history:", error);
       setPaymentHistory([]);
@@ -566,7 +566,7 @@ const UserDashboard = () => {
             </Nav.Link>
           </div>
           <div className="row mt-2">
-            <div className="col-lg-4 mt-4">
+            <div className="col-lg-3 mt-4">
               <div className="bookcomfortbox popbg user-details">
                 <div className="user-info text-center mb-4">
                   <img
@@ -617,7 +617,7 @@ const UserDashboard = () => {
                 </ul>
               </div>
             </div>
-            <div className="col-lg-8 mt-4">
+            <div className="col-lg-9 mt-4">
               <div className="bookcomfortbox">{tabContent[selectedTab]}</div>
             </div>
           </div>

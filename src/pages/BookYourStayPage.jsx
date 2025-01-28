@@ -608,7 +608,7 @@ const BookYourStayPage = () => {
                               cursor: "pointer",
                               backgroundColor:
                                 selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                                  ? "#F4F4F4"
+                                  ? "rgba(235, 214, 193, 0.34)"
                                   : "#fff",
                               border:
                                 selectedPackage?.id === pkg.id && selectedRoomId === room.id
@@ -693,7 +693,7 @@ const BookYourStayPage = () => {
                                 backgroundColor:
                                   selectedOption === option.id &&
                                     selectedRoomId === room.id
-                                    ? "#F4F4F4"
+                                    ? "rgba(235, 214, 193, 0.34)"
                                     : "#fff",
                                 border:
                                   selectedOption === option.id &&

@@ -35,6 +35,7 @@ const Checkouts = () => {
     pincode: "",
   });
   const [isDisable, setIsDisable] = useState(true);
+  const [isChecked, setIsChecked] = useState(false);
   const navigate = useNavigate();
 
   function loadScript(src) {
@@ -50,6 +51,9 @@ const Checkouts = () => {
       document.body.appendChild(script);
     });
   }
+  const handleCheckboxChange = (e) => {
+    setIsChecked(e.target.checked);
+  };
 
   useEffect(() => {
     const type = localStorage.getItem("type");
@@ -241,12 +245,14 @@ const Checkouts = () => {
         setShowVerify(false);
         const token = response.data.token; // Assuming the token is in response.data.token
         login(token);
+        setProfileData(response.data.user);
+        console.log("use data on login", response.data)
         setOtpVerifiedMessage("OTP Verified successfully!");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       setFormErrors({
-        submit: error.response?.data || "Error verifying OTP " + error,
+        submit: error.response?.data || "Error verifying OTP " + error.message,
       });
     }
   };
@@ -311,7 +317,7 @@ const Checkouts = () => {
 
         const result = await API.post("auth/user/booking/success", data);
         console.log(result.data);
-        alert(result.data.msg);
+        // alert(result.data.msg);
         // console.log("pament success check", result.data.msg)
         // navigate("/thankyou")        
         if (result.data.status === true) {
@@ -332,8 +338,8 @@ const Checkouts = () => {
               paymentDetails: result.data.paymentDetails,
             },
           });
-          
-          console.log("from checkout",result.data.paymentDetails)
+
+          console.log("from checkout", result.data.paymentDetails)
         } else navigate('/');
 
 
@@ -630,33 +636,34 @@ const Checkouts = () => {
                       </div>
                       <div className="col-md-12 mt-3">
                         <div className="forminput">
-                          <Form.Group className="inputlabel" controlId="name">
-                            <Form.Label>
-                              Upload Your ID Proof (Optional)
-                            </Form.Label>
-                            <div className="controlinput">
+                          <Form.Group className="inputlabel" controlId="idProof">
+                            <Form.Label>Upload Your ID Proof (Optional)</Form.Label>
+                            <div className="controlinput fileInput">
                               <div className="uploadinput">
-                                Upload Passport, Aadhar and Driving License
-                                (ANYONE){" "}
+                                Upload Passport, Aadhar, or Driving License (ANYONE)
                               </div>
                               <span className="uploadloacte">
-                                <input type="file" name="idProof" />
-                                <div className="placeuploads">
-                                  <i className="bi bi-upload ms-2"></i> Click
-                                  Here to Upload ID Proof File
-                                </div>
+                                {/* Correctly structured input file */}
+                                <input
+                                  type="file"
+                                  name="idProof"
+                                  className="d-none"
+                                  id="idProofInput"
+                                />
+                                <label htmlFor="idProofInput" className="placeuploads">
+                                  <i className="bi bi-upload ms-2"></i> Click Here to Upload ID Proof File
+                                </label>
                               </span>
                             </div>
                             <p className="text-muted my-1 mb-0">
-                              If you upload your ID Proof - Passport, Aadhar and
-                              Driving License (ANYONE) here, you won't be asked
-                              for your ID proof at the time of Check In at the
-                              property. We make sure, all your information is
-                              confidential.
+                              If you upload your ID Proof (Passport, Aadhar, or Driving License),
+                              you won’t be asked for your ID proof at the time of Check-In at the
+                              property. We ensure all your information is confidential.
                             </p>
                           </Form.Group>
                         </div>
                       </div>
+
                       {formErrors.submit && (
                         <div className="col-md-12 mt-3">
                           <div className="alert alert-danger">
@@ -962,7 +969,12 @@ const Checkouts = () => {
                           controlId="formBasicCheckbox"
                           className="d-flex paymentcheckmark"
                         >
-                          <Form.Check size="lg" type="checkbox" name="proc_payment" />
+                          <Form.Check
+                            size="lg"
+                            type="checkbox"
+                            name="proc_payment"
+                            onChange={handleCheckboxChange}
+                          />
                           <span>
                             By proceeding, I agree to Vrruksh Eco Stay's{" "}
                             <Link to="/">User Agreement, </Link> and the{" "}
@@ -976,7 +988,11 @@ const Checkouts = () => {
                       </Form>
                     </div>
                     <div className="col-md-6 col-12">
-                      <button className="bookcombtn booknowbtn w-100" onClick={payment_init}>
+                      <button
+                        className="bookcombtn booknowbtn w-100"
+                        onClick={payment_init}
+                        disabled={!isChecked}
+                      >
                         {" "}
                         Proceed to pay{" "}
                       </button>

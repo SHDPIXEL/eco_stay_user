@@ -24,12 +24,14 @@ import ReviewSlider from "./ReviewSlider";
 import LoginModal from "./LoginModal";
 import MainFooter from "./MainFooter";
 import { useLocation } from "react-router-dom";
+import API from "../api";
 
 const Home = () => {
     const sectionRef = useRef(null);
     const [loginModalshow, setLoginModalshow] = useState(false);
     const [isModelOpen, setIsmodelOpen] = useState(false);
     const [modalContent, setModalContent] = useState({ title: "", description: "" });
+    const [rooms, setRooms] = useState([]);
 
     const handleModelOpen = (title, description) => {
         setModalContent({ title, description });
@@ -60,6 +62,20 @@ const Home = () => {
             }
         }
     }, [location]);
+
+    useEffect(() => {
+        const fetchRooms = async () => {
+            try {
+                const response = await API.get("rooms/room");
+                const data = response.data;
+                console.log("fetching room data", data);
+                setRooms(data);
+            } catch (e) {
+                console.error("Error in fetching room data", e)
+            }
+        }
+        fetchRooms();
+    }, [])
 
     return (
         <>
@@ -183,88 +199,44 @@ const Home = () => {
                     </div>
                     <div className="row ">
 
-                        <div 
-                        className="col-lg-4 mt-4 mb-lg-0">
-                            <div className="luximgbox position-relative">
-                                <img src={lux1img} alt="luximg" width={"100%"} />
-                                <svg xmlns="http://www.w3.org/2000/svg" width="596" height="674" className='luximgoverlay' viewBox="0 0 596 674" fill="none">
-                                    <path d="M564 0H32C14.3269 0 0 14.3269 0 32V642C0 659.673 14.3269 674 32 674H434.5C453.7 674 457.5 659 457 651.5V607.5C457 593.5 469.333 589.333 475.5 589H575.5C592.3 589 596.167 575.333 596 568.5V551V32C596 14.3269 581.673 0 564 0Z" fill="url(#paint0_linear_2_179)" />
-                                    <defs>
-                                        <linearGradient id="paint0_linear_2_179" x1="298.003" y1="0" x2="298.003" y2="722.143" gradientUnits="userSpaceOnUse">
-                                            <stop stopColor="white" stopOpacity="0" />
-                                            <stop offset="0.435" stopOpacity="0" />
-                                            <stop offset="1" stopColor="#1E1E1E" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                                <div className="luxboxcontent ">
-                                    <h3 >Mud Block Cottages</h3>
-                                    <p >9 Mud Block Cottages <br />550 sqft each</p>
+                        {
+                            rooms.map((room) => (
+                                <div className="col-lg-4 mt-4 mb-lg-0">
+                                    <div className="luximgbox position-relative">
+                                        <img src={lux1img} alt="luximg" width={"100%"} />
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="596" height="674" className='luximgoverlay' viewBox="0 0 596 674" fill="none">
+                                            <path d="M564 0H32C14.3269 0 0 14.3269 0 32V642C0 659.673 14.3269 674 32 674H434.5C453.7 674 457.5 659 457 651.5V607.5C457 593.5 469.333 589.333 475.5 589H575.5C592.3 589 596.167 575.333 596 568.5V551V32C596 14.3269 581.673 0 564 0Z" fill="url(#paint0_linear_2_179)" />
+                                            <defs>
+                                                <linearGradient id="paint0_linear_2_179" x1="298.003" y1="0" x2="298.003" y2="722.143" gradientUnits="userSpaceOnUse">
+                                                    <stop stopColor="white" stopOpacity="0" />
+                                                    <stop offset="0.435" stopOpacity="0" />
+                                                    <stop offset="1" stopColor="#1E1E1E" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <div className="luxboxcontent ">
+                                            <h3 >{room.room_name}</h3>
+                                            <p className="amenities">
+                                                {JSON.parse(room.amenities).map((amenity, idx) => (
+                                                    <span className="amenities" key={idx}>
+                                                        {amenity}
+                                                        <br />
+                                                    </span>
+                                                ))}
+                                            </p>
+                                        </div>
+                                        <div
+                                            onClick={() => handleModelOpen(
+                                                room.room_name,
+                                                room.description
+                                            )}
+                                            className='arrowbtn luxarrybtn'>
+                                            <img src={arrowlink} alt='arrowlink' />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div 
-                                 onClick={() => handleModelOpen(
-                                    "Mud Block Cottages",
-                                    "Our aesthetic cottages, made from Stabilized Mud Blocks without concrete or plastering, regulating indoor temperatures, staying cool in summer and warm in winter."
-                                )}
-                                className='arrowbtn luxarrybtn'>
-                                    <img src={arrowlink} alt='arrowlink' />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-4 mt-4 mb-lg-0">
-                            <div className="luximgbox position-relative">
-                                <img src={lux2img} alt="luximg" width={"100%"} />
-                                <svg xmlns="http://www.w3.org/2000/svg" width="596" height="674" className='luximgoverlay' viewBox="0 0 596 674" fill="none">
-                                    <path d="M564 0H32C14.3269 0 0 14.3269 0 32V642C0 659.673 14.3269 674 32 674H434.5C453.7 674 457.5 659 457 651.5V607.5C457 593.5 469.333 589.333 475.5 589H575.5C592.3 589 596.167 575.333 596 568.5V551V32C596 14.3269 581.673 0 564 0Z" fill="url(#paint0_linear_2_179)" />
-                                    <defs>
-                                        <linearGradient id="paint0_linear_2_179" x1="298.003" y1="0" x2="298.003" y2="722.143" gradientUnits="userSpaceOnUse">
-                                            <stop stopColor="white" stopOpacity="0" />
-                                            <stop offset="0.435" stopOpacity="0" />
-                                            <stop offset="1" stopColor="#1E1E1E" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                                <div className="luxboxcontent ">
-                                    <h3 >Median <br /> Tents</h3>
-                                    <p >4 Medium Size Clamping Tents <br />650 sqft each</p>
-                                </div>
-                                <div 
-                                onClick={() => handleModelOpen(
-                                    "Median Tents",
-                                    "Our aesthetic cottages, made from Stabilized Mud Blocks without concrete or plastering, regulating indoor temperatures, staying cool in summer and warm in winter."
-                                )}
-                                className='arrowbtn luxarrybtn'>
-                                    <img src={arrowlink} alt='arrowlink' />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-lg-4 mt-4 mb-lg-0">
-                            <div className="luximgbox position-relative">
-                                <img src={lux3img} alt="luximg" width={"100%"} />
-                                <svg xmlns="http://www.w3.org/2000/svg" width="596" height="674" className='luximgoverlay' viewBox="0 0 596 674" fill="none">
-                                    <path d="M564 0H32C14.3269 0 0 14.3269 0 32V642C0 659.673 14.3269 674 32 674H434.5C453.7 674 457.5 659 457 651.5V607.5C457 593.5 469.333 589.333 475.5 589H575.5C592.3 589 596.167 575.333 596 568.5V551V32C596 14.3269 581.673 0 564 0Z" fill="url(#paint0_linear_2_179)" />
-                                    <defs>
-                                        <linearGradient id="paint0_linear_2_179" x1="298.003" y1="0" x2="298.003" y2="722.143" gradientUnits="userSpaceOnUse">
-                                            <stop stopColor="white" stopOpacity="0" />
-                                            <stop offset="0.435" stopOpacity="0" />
-                                            <stop offset="1" stopColor="#1E1E1E" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                                <div className="luxboxcontent ">
-                                    <h3 >Colossal <br /> Tents</h3>
-                                    <p >2 Large Lavish Clamping Tents <br />850 sqft each</p>
-                                </div>
-                                <div 
-                                  onClick={() => handleModelOpen(
-                                    "Colossal Tents",
-                                    "Our aesthetic cottages, made from Stabilized Mud Blocks without concrete or plastering, regulating indoor temperatures, staying cool in summer and warm in winter."
-                                )}
-                                className='arrowbtn luxarrybtn'>
-                                    <img src={arrowlink} alt='arrowlink' />
-                                </div>
-                            </div>
-                        </div>
+                            ))
+                        }
                     </div>
 
                 </section>
