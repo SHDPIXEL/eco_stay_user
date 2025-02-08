@@ -155,6 +155,7 @@ const Checkouts = () => {
     selectedPackage,
     selectedCottages,
     roomName,
+    roomId,
     occupancyType,
     packageName,
     basePrice,
@@ -265,6 +266,32 @@ const Checkouts = () => {
     }
   };
 
+
+  const handleProceed = () => {
+    const userType = localStorage.getItem("type");
+  
+    if (userType !== "agent") {
+      // If not an agent, directly show details
+      setShowDetails(true);
+      return;
+    }
+  
+    // If user is an agent, validate fields (excluding idProof)
+    const { idProof, ...restProfileData } = profileData;
+    console.log(profileData);
+    console.log(restProfileData);
+  
+    const values = Object.values(restProfileData);
+    const isValid = values.every((value) => value && value.trim() !== "");
+  
+    if (isValid) {
+      setShowDetails(true);
+    } else {
+      alert("Please fill in all the details before proceeding.");
+    }
+  };
+  
+  
   const openReviewModal = () => {
     setReviewModalshow(true);
     document.body.style.overflow = "hidden";
@@ -305,7 +332,7 @@ const Checkouts = () => {
         currency: "INR",
         checkInDate,
         checkOutDate,
-        roomType: roomName,
+        roomType: roomName+'_'+roomId,
         number_of_cottages: selectedCottages,
         selected_packages: selectedPackage.name,
         selected_occupancy: occupancyType,
@@ -328,7 +355,7 @@ const Checkouts = () => {
           currency: "INR",
           checkInDate,
           checkOutDate,
-          roomType: roomName,
+          roomType: roomName+'_'+roomId,
           number_of_cottages: selectedCottages,
           selected_packages: selectedPackage.name,
           selected_occupancy: occupancyType,
@@ -837,6 +864,7 @@ const Checkouts = () => {
                               value={profileData.name}
                               placeholder="Enter Your Name"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} // Handle input change
                             />
                           </Form.Group>
@@ -860,6 +888,7 @@ const Checkouts = () => {
                               disabled={isDisable}
                               onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} // Handle input change
                               readOnly={isDisable}
+                              required
                               placeholder="Enter your phone number"
                             />
                           </Form.Group>
@@ -882,6 +911,7 @@ const Checkouts = () => {
                               value={profileData.address}
                               placeholder="Enter Your Address"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, address: e.target.value })} // Handle input change
 
                             />
@@ -904,6 +934,7 @@ const Checkouts = () => {
                               value={profileData.email}
                               placeholder="Enter Your Email"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} // Handle input change
                             />
                           </Form.Group>
@@ -928,6 +959,7 @@ const Checkouts = () => {
                               value={profileData.city}
                               placeholder="Enter Your City"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, city: e.target.value })} // Handle input change
                             />
                           </Form.Group>
@@ -950,6 +982,7 @@ const Checkouts = () => {
                               value={profileData.state}
                               placeholder="Enter Your State"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, state: e.target.value })} // Handle input change     
                             />
                           </Form.Group>
@@ -972,6 +1005,7 @@ const Checkouts = () => {
                               value={profileData.country}
                               placeholder="Enter Your Country"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, country: e.target.value })} // Handle input change
                             />
                           </Form.Group>
@@ -994,6 +1028,7 @@ const Checkouts = () => {
                               value={profileData.pincode}
                               placeholder="Enter Your Pincode"
                               disabled={isDisable}
+                              required
                               onChange={(e) => setProfileData({ ...profileData, pincode: e.target.value })} // Handle input change
                             />
                           </Form.Group>
@@ -1004,7 +1039,8 @@ const Checkouts = () => {
                   <Row>
                     <Col md={6}>
                       <button
-                        onClick={() => setShowDetails(true)}
+                        // onClick={() => setShowDetails(true)}
+                        onClick={handleProceed}
                         className="bookcombtn booknowbtn w-100"
                       >
                         Proceed with these details

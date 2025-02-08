@@ -37,7 +37,7 @@ const BookYourStayPage = () => {
   const [isModelOpen, setIsmodelOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", description: "" });
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndexes, setCurrentIndexes] = useState({}); // Store indexes for each room
   // const images = JSON.parse(room.room_images);
 
 
@@ -506,20 +506,46 @@ const BookYourStayPage = () => {
             <div className="row g-0">
               <div className="col-md-4 border-right">
                 <div className="leftBookstaybox border-0">
-                  <div className="slider-container">
-                    <button className="prev" onClick={() => setCurrentIndex((prev) => (prev === 0 ? JSON.parse(room.room_images).length - 1 : prev - 1))}>
-                      &#10094;
-                    </button>
 
-                    <img
-                      src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndex]}`}
-                      alt="Room"
-                      className="slider-image"
-                    />
+                  <div key={index} className="slider-container">
+                    {/* Default index to 0 if not set */}
+                    {JSON.parse(room.room_images).length > 0 && (
+                      <>
+                        <button
+                          className="prev"
+                          onClick={() =>
+                            setCurrentIndexes((prev) => ({
+                              ...prev,
+                              [index]: prev[index] === 0
+                                ? JSON.parse(room.room_images).length - 1
+                                : prev[index] - 1,
+                            }))
+                          }
+                        >
+                          &#10094;
+                        </button>
 
-                    <button className="next" onClick={() => setCurrentIndex((prev) => (prev === JSON.parse(room.room_images).length - 1 ? 0 : prev + 1))}>
-                      &#10095;
-                    </button>
+                        <img
+                          src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndexes[index] || 0]}`}
+                          alt="Room"
+                          className="slider-image"
+                        />
+
+                        <button
+                          className="next"
+                          onClick={() =>
+                            setCurrentIndexes((prev) => ({
+                              ...prev,
+                              [index]: prev[index] === JSON.parse(room.room_images).length - 1
+                                ? 0
+                                : (prev[index] || 0) + 1,
+                            }))
+                          }
+                        >
+                          &#10095;
+                        </button>
+                      </>
+                    )}
                   </div>
 
                   <h4 className="model-title">{room.room_name}</h4>
