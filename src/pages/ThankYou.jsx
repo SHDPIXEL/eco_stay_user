@@ -20,7 +20,7 @@ const ThankYouPage = () => {
   }, [location.state]);
 
   const handleGoToProfile = () => {
-    navigate("/");
+    navigate("/dashboard");
   };
 
   console.log("On ThankYou page", paymentDetails);  // Debug to check if data is being passed

@@ -34,6 +34,9 @@ const Checkouts = () => {
     country: "",
     pincode: "",
   });
+
+  // console.log("Agent booking for user data", profileData)
+  const [idProofFile, setIdProofFile] = useState(null);
   const [isDisable, setIsDisable] = useState(true);
   const [isChecked, setIsChecked] = useState(false);
   const navigate = useNavigate();
@@ -53,6 +56,11 @@ const Checkouts = () => {
   }
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setIdProofFile(file);
   };
 
   useEffect(() => {
@@ -97,7 +105,7 @@ const Checkouts = () => {
         fetchUserData();
       } else if (userType === "agent") {
         setProfileData({
-          u_id: "",
+          // u_id: "",
           name: "",
           email: "",
           phone: "",
@@ -272,21 +280,66 @@ const Checkouts = () => {
       return;
     }
 
-    const result = await API.post("/auth/user/booking/orders", {
-      amt: finalAmount.toFixed(2),
-      currency: "INR",
-      checkInDate,
-      checkOutDate,
-      roomType: roomName,
-      number_of_cottages: selectedCottages,
-      selected_packages: selectedPackage.name,
-      selected_occupancy: occupancyType,
-      base_price: basePrice,
-      package_price: packagePrice,
-      total_nights: totalNights,
-      price_per_night: pricePerNight,
-      grand_total: grandTotal
-    });
+    // const result = await API.post("/auth/user/booking/orders", {
+    //   amt: finalAmount.toFixed(2),
+    //   currency: "INR",
+    //   checkInDate,
+    //   checkOutDate,
+    //   roomType: roomName,
+    //   number_of_cottages: selectedCottages,
+    //   selected_packages: selectedPackage.name,
+    //   selected_occupancy: occupancyType,
+    //   base_price: basePrice,
+    //   package_price: packagePrice,
+    //   total_nights: totalNights,
+    //   price_per_night: pricePerNight,
+    //   grand_total: grandTotal
+    // });
+
+
+    const userType = localStorage.getItem("type");
+    const bookingPayload =
+      userType === "agent" ?
+       {
+        amt: finalAmount.toFixed(2),
+        currency: "INR",
+        checkInDate,
+        checkOutDate,
+        roomType: roomName,
+        number_of_cottages: selectedCottages,
+        selected_packages: selectedPackage.name,
+        selected_occupancy: occupancyType,
+        base_price: basePrice,
+        package_price: packagePrice,
+        total_nights: totalNights,
+        price_per_night: pricePerNight,
+        grand_total: grandTotal,
+        u_id: profileData.u_id,
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        address: profileData.address,
+        city: profileData.city,
+        state: profileData.state,
+        country: profileData.country,
+        pincode: profileData.pincode,
+      }:{
+          amt: finalAmount.toFixed(2),
+          currency: "INR",
+          checkInDate,
+          checkOutDate,
+          roomType: roomName,
+          number_of_cottages: selectedCottages,
+          selected_packages: selectedPackage.name,
+          selected_occupancy: occupancyType,
+          base_price: basePrice,
+          package_price: packagePrice,
+          total_nights: totalNights,
+          price_per_night: pricePerNight,
+          grand_total: grandTotal,
+        }
+
+    const result = await API.post("/auth/user/booking/orders", bookingPayload);
 
     if (!result) {
       alert("Server error. Are you online?");
@@ -636,8 +689,11 @@ const Checkouts = () => {
                       </div>
                       <div className="col-md-12 mt-3">
                         <div className="forminput">
+
                           <Form.Group className="inputlabel" controlId="idProof">
-                            <Form.Label>Upload Your ID Proof (Optional)</Form.Label>
+                            <Form.Label>
+                              <span className="text-color">* </span>Upload Your ID Proof
+                            </Form.Label>
                             <div className="controlinput fileInput">
                               <div className="uploadinput">
                                 Upload Passport, Aadhar, or Driving License (ANYONE)
@@ -649,16 +705,33 @@ const Checkouts = () => {
                                   name="idProof"
                                   className="d-none"
                                   id="idProofInput"
+                                  accept="image/*,application/pdf"
+                                  onChange={handleFileChange}
                                 />
                                 <label htmlFor="idProofInput" className="placeuploads">
                                   <i className="bi bi-upload ms-2"></i> Click Here to Upload ID Proof File
                                 </label>
                               </span>
                             </div>
+
+                            {/* Display selected file */}
+                            {idProofFile && (
+                              <div className="uploaded-file mt-2">
+                                <strong>Attached File:</strong> {idProofFile.name}
+                                {idProofFile.type.startsWith("image/") && (
+                                  <div className="image-preview mt-2">
+                                    <img
+                                      src={URL.createObjectURL(idProofFile)}
+                                      alt="ID Proof Preview"
+                                      style={{ width: "150px", height: "auto", borderRadius: "5px" }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             <p className="text-muted my-1 mb-0">
-                              If you upload your ID Proof (Passport, Aadhar, or Driving License),
-                              you won’t be asked for your ID proof at the time of Check-In at the
-                              property. We ensure all your information is confidential.
+                              If you upload your ID Proof (Passport, Aadhar, or Driving License), you won’t be asked for your ID proof at the time of Check-In at the property. We ensure all your information is confidential.
                             </p>
                           </Form.Group>
                         </div>
@@ -940,7 +1013,6 @@ const Checkouts = () => {
                     <Col md={6}>
                       <Link
                         to="/dashboard"
-                        target="_blank"
                         className="bookcombtn booknowbtn w-100"
                       >
                         Update Profile
