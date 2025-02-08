@@ -1394,6 +1394,14 @@ input::-webkit-inner-spin-button {
     cursor: pointer;
     font-size: 18px;
   }
+
+  .status-confirmed {
+    color: green !important;
+  }
+  
+  .status-not-confirmed {
+    color: red !important;
+  }
   
   .prev { left: 10px; }
   .next { right: 10px; }

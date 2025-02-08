@@ -8,7 +8,7 @@ import API from "../api";
 const UserDashboard = () => {
   const { logout } = useContext(AuthContext);
   const userType = localStorage.getItem("type");
-  const [userId, setUserId ] = useState("");
+  const [userId, setUserId] = useState("");
 
   const [selectedTab, setSelectedTab] = useState("profile");
   const [profileData, setProfileData] = useState({
@@ -78,26 +78,26 @@ const UserDashboard = () => {
         userType === "agent"
           ? `/bookings/booking-details/agent/${userId}`
           : `/bookings/booking-details/user/${userId}`;
-  
+
       const response = await API.get(endPoint);
       console.log("Upcoming booking data:", response.data);
-  
+
       const today = new Date(); // Get today's date without time
       today.setHours(0, 0, 0, 0);
-  
+
       const upcoming = response.data.filter((booking) => {
         const checkInDate = new Date(booking.checkInDate);
         checkInDate.setHours(0, 0, 0, 0); // Normalize to compare only dates
         return checkInDate > today; // Future bookings
       });
-  
+
       setUpcomingBookings(upcoming);
       console.log("Filtered upcoming data:", upcoming);
     } catch (error) {
       console.error("Error fetching upcoming bookings:", error);
     }
   };
-  
+
   const fetchPastBookings = async () => {
     try {
       console.log("User ID:", userId);
@@ -105,26 +105,26 @@ const UserDashboard = () => {
         userType === "agent"
           ? `/bookings/booking-details/agent/${userId}`
           : `/bookings/booking-details/user/${userId}`;
-  
+
       const response = await API.get(endPoint);
       console.log("Past booking data:", response.data);
-  
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-  
+
       const past = response.data.filter((booking) => {
         const checkInDate = new Date(booking.checkInDate);
         checkInDate.setHours(0, 0, 0, 0);
         return checkInDate <= today; // Today or past bookings
       });
-  
+
       setPastBookings(past);
       console.log("Filtered past data:", past);
     } catch (error) {
       console.error("Error fetching past bookings:", error);
     }
   };
-  
+
 
 
   const fetchUserData = async () => {
@@ -429,7 +429,9 @@ const UserDashboard = () => {
                   <td>{booking.booking_id}</td>
                   <td>{booking.checkInDate}</td>
                   <td>{booking.checkOutDate}</td>
-                  <td>{booking.status}</td>
+                  <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
+                    {booking.status}
+                  </td>
                   <td>{booking.customerPhone}</td>
                   <td>{booking.amount}</td>
                 </tr>
@@ -476,15 +478,17 @@ const UserDashboard = () => {
             ) : (
               pastBookings.map((booking, index) => (
                 <tr key={booking.id}>
-                  <td>{index + 1}</td>
-                  <td>{booking.customerName}</td>
-                  <td>{booking.booking_id}</td>
-                  <td>{booking.checkInDate}</td>
-                  <td>{booking.checkOutDate}</td>
-                  <td>{booking.status}</td>
-                  <td>{booking.customerPhone}</td>
-                  <td>{booking.amount}</td>
-                </tr>
+                <td>{index + 1}</td>
+                <td>{booking.customerName}</td>
+                <td>{booking.booking_id}</td>
+                <td>{booking.checkInDate}</td>
+                <td>{booking.checkOutDate}</td>
+                <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
+                  {booking.status}
+                </td>
+                <td>{booking.customerPhone}</td>
+                <td>{booking.amount}</td>
+              </tr>
               ))
             )}
           </tbody>
@@ -531,7 +535,7 @@ const UserDashboard = () => {
                   <td>{payment.BookingDetail.booking_id}</td>
                   <td>{payment.amount}</td>
                   <td>{payment.paymentDate}</td>
-                  <td>{payment.status}</td>
+                  <td className={payment.status === "success" ? "status-confirmed" : "status-not-confirmed"}>{payment.status}</td>
                 </tr>
               ))
             )}

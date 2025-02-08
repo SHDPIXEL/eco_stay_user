@@ -40,6 +40,8 @@ const ReviewBooking = () => {
     selectedOption === 1 ? "Single Occupancy" : "Double Occupancy";
   const packageName = selectedPackage?.name || "No Package Selected";
 
+  const roomId = selectedRoom?.id || "Not selected";
+
   const newPrice =
     selectedOption === 1
       ? selectedRoom?.single_new_price
@@ -82,6 +84,7 @@ const ReviewBooking = () => {
         selectedPackage,
         selectedCottages,
         roomName,
+        roomId,
         occupancyType,
         packageName,
         basePrice,
