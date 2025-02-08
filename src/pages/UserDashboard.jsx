@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, use, useId } from "react";
 import MainFooter from "./MainFooter";
 import { Button, Nav, Form, Table, Row, Col } from "react-bootstrap";
 import { AuthContext } from "../context/AuthContext";
@@ -8,6 +8,7 @@ import API from "../api";
 const UserDashboard = () => {
   const { logout } = useContext(AuthContext);
   const userType = localStorage.getItem("type");
+  const [userId, setUserId ] = useState("");
 
   const [selectedTab, setSelectedTab] = useState("profile");
   const [profileData, setProfileData] = useState({
@@ -30,54 +31,12 @@ const UserDashboard = () => {
     logout();
   };
 
-  // Fetch data based on the selected tab
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     try {
-  //       // Assuming your API route expects a `u_id` to fetch user data;
-  //       const endPoint = userType === "agent" ? "/auth/agent/agent-data" : "/auth/user/user-data"
-  //       const response = await API.post(endPoint); // Fetch based on u_id
-  //       setProfileData(response.data);
-  //       console.log(response)
-  //     } catch (error) {
-  //       console.error("Error fetching user data:", error);
-  //     }
-  //   };
 
-  //   const fetchPaymentHistory = async () => {
-  //     try {
-  //       const response = await API.get("/payments/payment");
-  //       setPaymentHistory(Array.isArray(response.data) ? response.data : []);
-  //     } catch (error) {
-  //       console.error("Error fetching payment history:", error);
-  //       setPaymentHistory([]);
-  //     }
-  //   };
-
-  //   if (selectedTab === "profile") fetchUserData();
-  //   if (selectedTab === "upcomingBookings") fetchUpcomingBookings();
-  //   if (selectedTab === "pastBookings") fetchPastBookings();
-  //   if (selectedTab === "paymentHistory") fetchPaymentHistory();
-  //   fetchPaymentHistory();
-  // }, [selectedTab, profileData.u_id]); // Add profileData.u_id as a dependency to trigger on change
-
-  // const fetchUpcomingBookings = async () => {
-  //   try {
-  //     const response = await API.get("/bookings/booking-details");
-  //     setUpcomingBookings(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching upcoming bookings:", error);
-  //   }
-  // };
-
-  // const fetchPastBookings = async () => {
-  //   try {
-  //     const response = await API.get("/bookings/booking-details");
-  //     setPastBookings(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching past bookings:", error);
-  //   }
-  // };
+  useEffect(() => {
+    if (profileData.u_id) {
+      setUserId(profileData.u_id);
+    }
+  }, [profileData.u_id]);
 
   useEffect(() => {
     if (selectedTab === "profile") fetchUserData();
@@ -107,7 +66,6 @@ const UserDashboard = () => {
     try {
       const response = await API.get("/payments/payment");
       setPaymentHistory(Array.isArray(response.data.payments) ? response.data.payments : []);
-      console.log("respnse.data checking", response.data.payments)
     } catch (error) {
       console.error("Error fetching payment history:", error);
       setPaymentHistory([]);
@@ -116,23 +74,58 @@ const UserDashboard = () => {
 
   const fetchUpcomingBookings = async () => {
     try {
-      const response = await API.get("/bookings/booking-details");
-      const upcoming = response.data.filter((booking) => booking.status === "pending");
+      const endPoint =
+        userType === "agent"
+          ? `/bookings/booking-details/agent/${userId}`
+          : `/bookings/booking-details/user/${userId}`;
+  
+      const response = await API.get(endPoint);
+      console.log("Upcoming booking data:", response.data);
+  
+      const today = new Date(); // Get today's date without time
+      today.setHours(0, 0, 0, 0);
+  
+      const upcoming = response.data.filter((booking) => {
+        const checkInDate = new Date(booking.checkInDate);
+        checkInDate.setHours(0, 0, 0, 0); // Normalize to compare only dates
+        return checkInDate > today; // Future bookings
+      });
+  
       setUpcomingBookings(upcoming);
+      console.log("Filtered upcoming data:", upcoming);
     } catch (error) {
       console.error("Error fetching upcoming bookings:", error);
     }
   };
-
+  
   const fetchPastBookings = async () => {
     try {
-      const response = await API.get("/bookings/booking-details");
-      const past = response.data.filter((booking) => booking.status !== "pending");
+      console.log("User ID:", userId);
+      const endPoint =
+        userType === "agent"
+          ? `/bookings/booking-details/agent/${userId}`
+          : `/bookings/booking-details/user/${userId}`;
+  
+      const response = await API.get(endPoint);
+      console.log("Past booking data:", response.data);
+  
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+  
+      const past = response.data.filter((booking) => {
+        const checkInDate = new Date(booking.checkInDate);
+        checkInDate.setHours(0, 0, 0, 0);
+        return checkInDate <= today; // Today or past bookings
+      });
+  
       setPastBookings(past);
+      console.log("Filtered past data:", past);
     } catch (error) {
       console.error("Error fetching past bookings:", error);
     }
   };
+  
+
 
   const fetchUserData = async () => {
     try {
@@ -140,7 +133,7 @@ const UserDashboard = () => {
       const endPoint = userType === "agent" ? "/auth/agent/agent-data" : "/auth/user/user-data"
       const response = await API.post(endPoint); // Fetch based on u_id
       setProfileData(response.data);
-      console.log(response)
+      setUserId(response.data.id)
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
@@ -517,6 +510,7 @@ const UserDashboard = () => {
             <tr>
               <th>Id</th>
               <th>Transaction ID</th>
+              <th>Booking Id</th>
               <th>Amount</th>
               <th>Date</th>
               <th>Status</th>
@@ -534,6 +528,7 @@ const UserDashboard = () => {
                 <tr key={payment.id}>
                   <td>{index + 1}</td>
                   <td>{payment.transactionId}</td>
+                  <td>{payment.BookingDetail.booking_id}</td>
                   <td>{payment.amount}</td>
                   <td>{payment.paymentDate}</td>
                   <td>{payment.status}</td>

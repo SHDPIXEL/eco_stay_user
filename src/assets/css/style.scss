@@ -491,7 +491,29 @@ svg.luximgoverlay {
     font-weight: 300;
 }
 
-.bookcomfortbox ul li:last-child {
+.firstbookcomfortbox ul li:last-child {
+    color: #84A91F;
+}
+
+.firstbookcomfortbox ul {
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+.firstbookcomfortbox ul li {
+    list-style: none;
+    display: inline-block;
+    padding: 4px 6px;
+    background: #fff;
+    margin: 4px;
+    border-radius: 5px;
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: 300;
+}
+
+.firstbookcomfortbox ul li:last-child {
     color: #84A91F;
 }
 
@@ -1162,6 +1184,15 @@ input::-webkit-inner-spin-button {
     gap: 5px;
 }
 
+.amenities-tags{
+    background-color: white;
+    color: black;
+    padding: 0px 10px;
+    font-size: small;
+    border-radius: 5px;
+    font-style: bold;
+}
+
 .AuthcloseIcon {
     position: absolute;
     top: 3px;
@@ -1330,7 +1361,47 @@ input::-webkit-inner-spin-button {
 }
 
 
+
+
 // bookyour stay
+
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 300px;
+    overflow: hidden;
+    margin: auto;
+    text-align: center;
+  }
+  
+  .slider-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .prev, .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 18px;
+  }
+  
+  .prev { left: 10px; }
+  .next { right: 10px; }
+  
+  .prev:hover, .next:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
 
 .bookstay {
     border-radius: 32px;

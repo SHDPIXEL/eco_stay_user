@@ -13,6 +13,7 @@ import Adultimg from "../assets/images/group-3-line.svg";
 import ReviewSlider from "./ReviewSlider";
 import ContactSection from "./ContactSection";
 import MainFooter from "./MainFooter";
+import { BASE_URL } from "../api";
 
 const BookYourStayPage = () => {
   const [value, setValue] = useState(1);
@@ -35,6 +36,10 @@ const BookYourStayPage = () => {
   const [animatingCottages, setAnimatingCottages] = useState([]);
   const [isModelOpen, setIsmodelOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", description: "" });
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  // const images = JSON.parse(room.room_images);
+
 
 
   const handleModelOpen = (title, description) => {
@@ -501,7 +506,22 @@ const BookYourStayPage = () => {
             <div className="row g-0">
               <div className="col-md-4 border-right">
                 <div className="leftBookstaybox border-0">
-                  <img src={bookyour1} alt="" />
+                  <div className="slider-container">
+                    <button className="prev" onClick={() => setCurrentIndex((prev) => (prev === 0 ? JSON.parse(room.room_images).length - 1 : prev - 1))}>
+                      &#10094;
+                    </button>
+
+                    <img
+                      src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndex]}`}
+                      alt="Room"
+                      className="slider-image"
+                    />
+
+                    <button className="next" onClick={() => setCurrentIndex((prev) => (prev === JSON.parse(room.room_images).length - 1 ? 0 : prev + 1))}>
+                      &#10095;
+                    </button>
+                  </div>
+
                   <h4 className="model-title">{room.room_name}</h4>
 
                   <ul>
@@ -561,7 +581,7 @@ const BookYourStayPage = () => {
                                 style={{
                                   transition: 'all 0.3s ease',
                                   transform: animatingCottages.includes(index) ? 'scale(.9)' : 'scale(1)',
-                                        backgroundColor: index < selectedCottages && selectedRoomId === room.id ? '#f7f7ca29' : '', 
+                                  backgroundColor: index < selectedCottages && selectedRoomId === room.id ? '#f7f7ca29' : '',
                                 }}
                               >
                                 <img src={available} alt="Available" />

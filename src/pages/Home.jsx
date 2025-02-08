@@ -25,6 +25,7 @@ import LoginModal from "./LoginModal";
 import MainFooter from "./MainFooter";
 import { useLocation } from "react-router-dom";
 import API from "../api";
+import { BASE_URL } from "../api";
 
 const Home = () => {
     const sectionRef = useRef(null);
@@ -200,10 +201,14 @@ const Home = () => {
                     <div className="row ">
 
                         {
-                            rooms.map((room) => (
+                            rooms.slice(0, 3).map((room) => (
                                 <div className="col-lg-4 mt-4 mb-lg-0">
                                     <div className="luximgbox position-relative">
-                                        <img src={lux1img} alt="luximg" width={"100%"} />
+                                        {
+                                            JSON.parse(room.room_images).slice(0,1).map((image) => (
+                                                <img src={`${BASE_URL}/assets/images/${image}`} alt="luximg" width={"100%"} />
+                                            ))
+                                        }
                                         <svg xmlns="http://www.w3.org/2000/svg" width="596" height="674" className='luximgoverlay' viewBox="0 0 596 674" fill="none">
                                             <path d="M564 0H32C14.3269 0 0 14.3269 0 32V642C0 659.673 14.3269 674 32 674H434.5C453.7 674 457.5 659 457 651.5V607.5C457 593.5 469.333 589.333 475.5 589H575.5C592.3 589 596.167 575.333 596 568.5V551V32C596 14.3269 581.673 0 564 0Z" fill="url(#paint0_linear_2_179)" />
                                             <defs>
@@ -219,7 +224,9 @@ const Home = () => {
                                             <p className="amenities">
                                                 {JSON.parse(room.amenities).map((amenity, idx) => (
                                                     <span className="amenities" key={idx}>
-                                                        {amenity}
+                                                        <div className="amenities-tags">
+                                                            {amenity}
+                                                        </div>
                                                         <br />
                                                     </span>
                                                 ))}
@@ -264,27 +271,35 @@ const Home = () => {
                     </div>
                     <div className="row mt-4 ">
 
-                        <div className="col-lg-4  mt-4 ">
-                            <div className="bookcomfortbox">
-                                <div className='topbook'>Exclusive</div>
-                                <h4>Mud Block Cottages</h4>
-                                <img src={bookimg1} alt='bokok' />
-                                <p>Our aesthetic cottages, made from Stabilized Mud Blocks without concrete or plastering, regulating indoor temperatures, staying cool in summer and warm in winter.</p>
-                                <h6>What’s in There for You?</h6>
-                                <ul>
-                                    <li>9 Mud Block Cottage</li>
-                                    <li>550 sqft each</li>
-                                    <li>King size bed</li>
-                                    <li>6 ft Bay Window</li>
-                                    <li>Verandah with sit out area</li>
-                                    <li><span>..and nature</span></li>
-                                </ul>
-                                <div className='bookcombtn' onClick={() => setLoginModalshow(true)}><img src={Houseicon} alt='' width={20} className='me-2' />Book your stay</div>
-                            </div>
-                        </div>
+                        {
+                            rooms.slice(0,3).map((room) => (
+                                <div className="col-lg-4  mt-4 ">
+                                    <div className="bookcomfortbox">
+                                        <div className='topbook'>{room.type}</div>
+                                        <h4>{room.room_name}</h4>
+                                        {
+                                            JSON.parse(room.room_images).slice(0,1).map((image) => (
+                                                <img src={`${BASE_URL}/assets/images/${image}`} alt='bokok' />
+                                            ))
+                                        }
+                                        <p>{room.description}</p>
+                                        <h6>What’s in There for You?</h6>
+                                        <ul>
+                                            {
+                                                JSON.parse(room.amenities).map((amenity) => (
+                                                    <li>{amenity}</li>
+                                                ))
+                                            }
+                                            <li><span>..and nature</span></li>
+                                        </ul>
+                                        <div className='bookcombtn' onClick={() => setLoginModalshow(true)}><img src={Houseicon} alt='' width={20} className='me-2' />Book your stay</div>
+                                    </div>
+                                </div>
+                            ))
+                        }
 
 
-                        <div className="col-lg-4  mt-4 ">
+                        {/* <div className="col-lg-4  mt-4 ">
                             <div className="bookcomfortbox popbg">
                                 <div className='topbook'>Most Popular</div>
                                 <h4>Median Tents</h4>
@@ -321,7 +336,7 @@ const Home = () => {
                                 </ul>
                                 <div className='bookcombtn' onClick={() => setLoginModalshow(true)}><img alt='' src={Houseicon} width={20} className='me-2' />Book your stay</div>
                             </div>
-                        </div>
+                        </div> */}
 
                     </div>
 
