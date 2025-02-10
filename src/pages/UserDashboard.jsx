@@ -62,10 +62,27 @@ const UserDashboard = () => {
     }
   };
 
-  const fetchPaymentHistory = async () => {
+  // const fetchPaymentHistory = async () => {
+  //   try {
+  //     const response = await API.get("/payments/payment");
+  //     setPaymentHistory(Array.isArray(response.data.payments) ? response.data.payments : []);
+  //   } catch (error) {
+  //     console.error("Error fetching payment history:", error);
+  //     setPaymentHistory([]);
+  //   }
+  // };
+
+    const fetchPaymentHistory = async () => {
     try {
-      const response = await API.get("/payments/payment");
-      setPaymentHistory(Array.isArray(response.data.payments) ? response.data.payments : []);
+      const endPoint = userType === 'agent' 
+      ? `/payments/payment/agent/${userId}`
+      : `/payments/payment/user/${userId}`;
+      console.log(userId)
+      console.log(endPoint)
+
+      const response = await API.get(endPoint);
+      console.log(response.data)
+      setPaymentHistory(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching payment history:", error);
       setPaymentHistory([]);
@@ -80,7 +97,7 @@ const UserDashboard = () => {
           : `/bookings/booking-details/user/${userId}`;
 
       const response = await API.get(endPoint);
-      console.log("Upcoming booking data:", response.data);
+      // console.log("Upcoming booking data:", response.data);
 
       const today = new Date(); // Get today's date without time
       today.setHours(0, 0, 0, 0);
@@ -92,7 +109,7 @@ const UserDashboard = () => {
       });
 
       setUpcomingBookings(upcoming);
-      console.log("Filtered upcoming data:", upcoming);
+      // console.log("Filtered upcoming data:", upcoming);
     } catch (error) {
       console.error("Error fetching upcoming bookings:", error);
     }
@@ -100,14 +117,14 @@ const UserDashboard = () => {
 
   const fetchPastBookings = async () => {
     try {
-      console.log("User ID:", userId);
+      // console.log("User ID:", userId);
       const endPoint =
         userType === "agent"
           ? `/bookings/booking-details/agent/${userId}`
           : `/bookings/booking-details/user/${userId}`;
 
       const response = await API.get(endPoint);
-      console.log("Past booking data:", response.data);
+      // console.log("Past booking data:", response.data);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -119,7 +136,7 @@ const UserDashboard = () => {
       });
 
       setPastBookings(past);
-      console.log("Filtered past data:", past);
+      // console.log("Filtered past data:", past);
     } catch (error) {
       console.error("Error fetching past bookings:", error);
     }
@@ -514,7 +531,7 @@ const UserDashboard = () => {
             <tr>
               <th>Id</th>
               <th>Transaction ID</th>
-              <th>Booking Id</th>
+              <th>Order Id</th>
               <th>Amount</th>
               <th>Date</th>
               <th>Status</th>
@@ -532,7 +549,7 @@ const UserDashboard = () => {
                 <tr key={payment.id}>
                   <td>{index + 1}</td>
                   <td>{payment.transactionId}</td>
-                  <td>{payment.BookingDetail.booking_id}</td>
+                  <td>{payment.orderId}</td>
                   <td>{payment.amount}</td>
                   <td>{payment.paymentDate}</td>
                   <td className={payment.status === "success" ? "status-confirmed" : "status-not-confirmed"}>{payment.status}</td>

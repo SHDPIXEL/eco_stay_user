@@ -109,7 +109,7 @@ const LoginModal = (props) => {
                     <div className="Orbtn">
                         <p>OR</p>
                     </div>
-                    <div className="loginGoogleBtn" onClick={showVerify}> <img src={googliconimg} alt="" className="me-2" /> Login with Google</div>
+                    <div className="loginGoogleBtn"> <img src={googliconimg} alt="" className="me-2" /> Login with Google</div>
                     <div className="loginAgent">
                         <div><img src={agenticon} alt="" width={150} /></div>
                         <h5>Are you a travel agent associated with Virya wildlife tours- Vrruksh Eco stay?</h5>

@@ -36,6 +36,7 @@ const BookYourStayPage = () => {
   const [animatingCottages, setAnimatingCottages] = useState([]);
   const [isModelOpen, setIsmodelOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", description: "" });
+  const [nonAvailableDates, setNonavailability] = useState();
 
   const [currentIndexes, setCurrentIndexes] = useState({}); // Store indexes for each room
   // const images = JSON.parse(room.room_images);
@@ -142,6 +143,9 @@ const BookYourStayPage = () => {
     ? connectedPackages.filter((room) => room.id === selectedRoomType)
     : connectedPackages;
 
+    console.log("filtered rooms", filteredRooms)
+
+
   const getRecentDates = (startDate) => {
     const dates = [];
     const today = startDate || new Date();
@@ -180,11 +184,17 @@ const BookYourStayPage = () => {
   const fetchRoomData = async () => {
     try {
       const response = await API.get("/rooms/room");
-      setRoomData(response.data);
+  
+      if (Array.isArray(response.data) && response.data.length === 0) {
+        navigate("/");
+      } else {
+        setRoomData(response.data);
+      }
     } catch (error) {
       console.error("Error fetching room data:", error);
     }
   };
+  
 
   const fetchAllPackages = async () => {
     try {
@@ -222,8 +232,22 @@ const BookYourStayPage = () => {
     }
   }, [roomData, packagesData]);
 
-  const validateBooking = (roomId) => {
+  const ChecknonAvailableDates = async (roomId) => {
+    try {
+      const response = await API.post(`/availabilities/availability/${roomId}`);
+      return response.data;
+    } catch (e) {
+      console.error("Error in fetching non-availability", e);
+      return null; // Return null instead of empty array
+    }
+  };
+
+  const validateBooking = async (roomId) => {
     const errors = {};
+
+
+    // ✅ Await the API response before proceeding
+    const nonAvailability = await ChecknonAvailableDates(roomId);
 
     if (!checkInDate) {
       errors.checkInDate = "Please select a check-in date";
@@ -248,13 +272,37 @@ const BookYourStayPage = () => {
       errors.totalPrice = "Total price calculation is missing";
     }
 
+
+
+    // ✅ Check if the selected dates match any non-available dates
+    if (nonAvailability) {
+
+      const formattedCheckInDate = new Date(checkInDate).toISOString().split("T")[0];
+      const formattedCheckOutDate = new Date(checkOutDate).toISOString().split("T")[0];
+
+      // console.log("Formatted Check-in Date:", formattedCheckInDate);
+      // console.log("Formatted Check-out Date:", formattedCheckOutDate);
+
+      if (formattedCheckInDate === nonAvailability.date) {
+        errors.checkInDate = "Selected check-in date is not available";
+      }
+      if (formattedCheckOutDate === nonAvailability.date) {
+        errors.checkOutDate = "Selected check-out date is not available";
+      }
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleBookStay = (roomId) => {
+
+
+  const handleBookStay = async (roomId) => {
     setActiveRoomId(roomId);
-    if (validateBooking(roomId)) {
+
+    const isValid = await validateBooking(roomId);
+
+    if (isValid) {
       const selectedRoomData = connectedPackages.find(room => room.id === roomId);
 
       navigate("/review-booking", {
