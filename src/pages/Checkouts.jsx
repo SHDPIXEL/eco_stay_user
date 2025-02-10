@@ -94,6 +94,7 @@ const Checkouts = () => {
       try {
         const response = await API.post("/auth/user/user-data"); // Fetch based on u_id
         setProfileData(response.data);
+        console.log("profile data",response.data)
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -395,12 +396,15 @@ const Checkouts = () => {
           amount,
         };
 
+        console.log("data before posting", data)
         const result = await API.post("auth/user/booking/success", data);
-        console.log(result.data);
+        console.log("payment successfully created", result.data)
+        // console.log(result.data);
         // alert(result.data.msg);
         // console.log("pament success check", result.data.msg)
         // navigate("/thankyou")        
-        if (result.data.status === true) {
+        if (result.data.paymentDetails.status === "success") {
+          console.log("result status", result.data.status)
           const bookingIdStr = String(result.data.bookingId);  // Ensure booking_id is a string
 
           // Get current date and time
@@ -714,9 +718,8 @@ const Checkouts = () => {
                           </Form.Group>
                         </div>
                       </div>
-                      <div className="col-md-12 mt-3">
+                      {/* <div className="col-md-12 mt-3">
                         <div className="forminput">
-
                           <Form.Group className="inputlabel" controlId="idProof">
                             <Form.Label>
                               <span className="text-color">* </span>Upload Your ID Proof
@@ -726,7 +729,6 @@ const Checkouts = () => {
                                 Upload Passport, Aadhar, or Driving License (ANYONE)
                               </div>
                               <span className="uploadloacte">
-                                {/* Correctly structured input file */}
                                 <input
                                   type="file"
                                   name="idProof"
@@ -741,7 +743,6 @@ const Checkouts = () => {
                               </span>
                             </div>
 
-                            {/* Display selected file */}
                             {idProofFile && (
                               <div className="uploaded-file mt-2">
                                 <strong>Attached File:</strong> {idProofFile.name}
@@ -762,7 +763,7 @@ const Checkouts = () => {
                             </p>
                           </Form.Group>
                         </div>
-                      </div>
+                      </div> */}
 
                       {formErrors.submit && (
                         <div className="col-md-12 mt-3">
