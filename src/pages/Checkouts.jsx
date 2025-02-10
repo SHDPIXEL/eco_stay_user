@@ -54,8 +54,12 @@ const Checkouts = () => {
       document.body.appendChild(script);
     });
   }
+
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
+    if (e.target.checked) {
+      setErrorMessage(""); // ✅ Clear error when checkbox is checked
+    }
   };
 
   const handleFileChange = (e) => {
@@ -94,7 +98,7 @@ const Checkouts = () => {
       try {
         const response = await API.post("/auth/user/user-data"); // Fetch based on u_id
         setProfileData(response.data);
-        console.log("profile data",response.data)
+        console.log("profile data", response.data)
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -209,6 +213,7 @@ const Checkouts = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const formDataObj = Object.fromEntries(formData.entries());
+    console.log("form data object:", formDataObj)
 
     const errors = validateForm(formDataObj);
     setFormErrors(errors);
@@ -270,35 +275,46 @@ const Checkouts = () => {
 
   const handleProceed = () => {
     const userType = localStorage.getItem("type");
-  
+
     if (userType !== "agent") {
       // If not an agent, directly show details
       setShowDetails(true);
       return;
     }
-  
+
     // If user is an agent, validate fields (excluding idProof)
     const { idProof, ...restProfileData } = profileData;
     console.log(profileData);
     console.log(restProfileData);
-  
+
     const values = Object.values(restProfileData);
     const isValid = values.every((value) => value && value.trim() !== "");
-  
+
     if (isValid) {
       setShowDetails(true);
     } else {
       alert("Please fill in all the details before proceeding.");
     }
   };
-  
-  
+
+
   const openReviewModal = () => {
     setReviewModalshow(true);
     document.body.style.overflow = "hidden";
   };
 
-  async function payment_init() {
+  async function payment_init(e) {
+
+    e.preventDefault();
+
+    if (!isChecked) {
+      setErrorMessage("Please check the terms and conditions to proceed."); // ✅ Show error message
+      return;
+    }
+    console.log("error messsage", errorMessage)
+
+    setErrorMessage(""); // ✅ Clear error when checkbox is checked
+
     const res = await loadScript(
       "https://checkout.razorpay.com/v1/checkout.js"
     );
@@ -328,35 +344,35 @@ const Checkouts = () => {
     const userType = localStorage.getItem("type");
     const bookingPayload =
       userType === "agent" ?
-       {
-        amt: finalAmount.toFixed(2),
-        currency: "INR",
-        checkInDate,
-        checkOutDate,
-        roomType: roomName+'_'+roomId,
-        number_of_cottages: selectedCottages,
-        selected_packages: selectedPackage.name,
-        selected_occupancy: occupancyType,
-        base_price: basePrice,
-        package_price: packagePrice,
-        total_nights: totalNights,
-        price_per_night: pricePerNight,
-        grand_total: grandTotal,
-        u_id: profileData.u_id,
-        name: profileData.name,
-        email: profileData.email,
-        phone: profileData.phone,
-        address: profileData.address,
-        city: profileData.city,
-        state: profileData.state,
-        country: profileData.country,
-        pincode: profileData.pincode,
-      }:{
+        {
           amt: finalAmount.toFixed(2),
           currency: "INR",
           checkInDate,
           checkOutDate,
-          roomType: roomName+'_'+roomId,
+          roomType: roomName + '_' + roomId,
+          number_of_cottages: selectedCottages,
+          selected_packages: selectedPackage.name,
+          selected_occupancy: occupancyType,
+          base_price: basePrice,
+          package_price: packagePrice,
+          total_nights: totalNights,
+          price_per_night: pricePerNight,
+          grand_total: grandTotal,
+          u_id: profileData.u_id,
+          name: profileData.name,
+          email: profileData.email,
+          phone: profileData.phone,
+          address: profileData.address,
+          city: profileData.city,
+          state: profileData.state,
+          country: profileData.country,
+          pincode: profileData.pincode,
+        } : {
+          amt: finalAmount.toFixed(2),
+          currency: "INR",
+          checkInDate,
+          checkOutDate,
+          roomType: roomName + '_' + roomId,
           number_of_cottages: selectedCottages,
           selected_packages: selectedPackage.name,
           selected_occupancy: occupancyType,
@@ -573,7 +589,7 @@ const Checkouts = () => {
                             <div className="controlinput">
                               <span>+91</span>
                               <Form.Control
-                                type="number"
+                                type="tel"
                                 className="mobileinput"
                                 name="phoneNumber"
                                 placeholder="Enter Mobile Number"
@@ -790,7 +806,7 @@ const Checkouts = () => {
                       <div className="col-md-12">
                         <p>
                           Verify your mobile number using OTP. We have sent an
-                          SMS with 6-digits OTP on your mobile number +91 .....
+                          SMS with 6-digits OTP on your mobile number +91...
                         </p>
                         <p>Time remaining: {formatTime(timer)}</p>
                       </div>
@@ -1093,6 +1109,7 @@ const Checkouts = () => {
                               Cancellation & Property Booking Policies.
                             </Link>
                           </span>
+                          {/* {errorMessage && <p style={{ color: "red", marginTop: "5px" }}>{errorMessage}</p>} */}
                         </Form.Group>
                       </Form>
                     </div>
@@ -1100,11 +1117,19 @@ const Checkouts = () => {
                       <button
                         className="bookcombtn booknowbtn w-100"
                         onClick={payment_init}
-                        disabled={!isChecked}
+                        // disabled={!isChecked}
                       >
                         {" "}
                         Proceed to pay{" "}
                       </button>
+
+                      {/* ✅ Show error message under the button */}
+                      {errorMessage && (
+                        <p style={{ color: "red", marginTop: "5px", textAlign: "center" }}>
+                          {errorMessage}
+                        </p>
+                      )}
+
                     </div>
                     <div className="col-md-2 mt-3 col-12 ">
                       <img src={trustimg} alt="" className="imgtrust" />

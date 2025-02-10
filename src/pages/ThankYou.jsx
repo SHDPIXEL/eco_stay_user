@@ -67,7 +67,8 @@ const styles = {
   heading: {
     fontSize: "2rem",
     marginBottom: "1rem",
-    color: "#333",
+    color: "#3A7D44",
+    fontWeight: "bold",
   },
   message: {
     fontSize: "1.2rem",

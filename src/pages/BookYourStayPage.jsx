@@ -143,7 +143,7 @@ const BookYourStayPage = () => {
     ? connectedPackages.filter((room) => room.id === selectedRoomType)
     : connectedPackages;
 
-    console.log("filtered rooms", filteredRooms)
+  // console.log("filtered rooms", filteredRooms)
 
 
   const getRecentDates = (startDate) => {
@@ -184,7 +184,7 @@ const BookYourStayPage = () => {
   const fetchRoomData = async () => {
     try {
       const response = await API.get("/rooms/room");
-  
+
       if (Array.isArray(response.data) && response.data.length === 0) {
         navigate("/");
       } else {
@@ -194,7 +194,7 @@ const BookYourStayPage = () => {
       console.error("Error fetching room data:", error);
     }
   };
-  
+
 
   const fetchAllPackages = async () => {
     try {
@@ -286,9 +286,9 @@ const BookYourStayPage = () => {
       if (formattedCheckInDate === nonAvailability.date) {
         errors.checkInDate = "Selected check-in date is not available";
       }
-      if (formattedCheckOutDate === nonAvailability.date) {
-        errors.checkOutDate = "Selected check-out date is not available";
-      }
+      // if (formattedCheckOutDate === nonAvailability.date) {
+      //   errors.checkOutDate = "Selected check-out date is not available";
+      // }
     }
 
     setValidationErrors(errors);
@@ -362,9 +362,7 @@ const BookYourStayPage = () => {
                       : "Not Selected"}
                   </span>
                 </p>
-                {validationErrors.checkInDate && (
-                  <p className="text-danger">{validationErrors.checkInDate}</p>
-                )}
+
                 <div className="rangebox">
                   <div className="me-1" style={{ position: "relative" }}>
                     <i
@@ -449,6 +447,7 @@ const BookYourStayPage = () => {
                 {validationErrors.checkOutDate && (
                   <p className="text-danger">{validationErrors.checkOutDate}</p>
                 )}
+
                 <div className="rangebox">
                   <div className="me-1" style={{ position: "relative" }}>
                     <i
@@ -853,6 +852,9 @@ const BookYourStayPage = () => {
                           <p className="text-danger text-center mt-2">
                             {validationErrors.checkOutDate}
                           </p>
+                        )}
+                        {validationErrors.checkInDate && (
+                          <p className="text-danger">{validationErrors.checkInDate}</p>
                         )}
                       </div>
                     </div>

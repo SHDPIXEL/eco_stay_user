@@ -72,11 +72,11 @@ const UserDashboard = () => {
   //   }
   // };
 
-    const fetchPaymentHistory = async () => {
+  const fetchPaymentHistory = async () => {
     try {
-      const endPoint = userType === 'agent' 
-      ? `/payments/payment/agent/${userId}`
-      : `/payments/payment/user/${userId}`;
+      const endPoint = userType === 'agent'
+        ? `/payments/payment/agent/${userId}`
+        : `/payments/payment/user/${userId}`;
       console.log(userId)
       console.log(endPoint)
 
@@ -427,8 +427,10 @@ const UserDashboard = () => {
               <th>Check IN</th>
               <th>Check-Out </th>
               <th>Status</th>
-              <th>Phone</th>
-              <th>Amount</th>
+              {
+                userType === "agent" ? <th>Phone</th> : ""
+              }
+              <th>Amount(Rs)</th>
             </tr>
           </thead>
           <tbody>
@@ -449,7 +451,9 @@ const UserDashboard = () => {
                   <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
                     {booking.status}
                   </td>
-                  <td>{booking.customerPhone}</td>
+                  {
+                    userType === "agent" ? <td>{booking.customerPhone}</td> : ""
+                  }
                   <td>{booking.amount}</td>
                 </tr>
               ))
@@ -481,8 +485,10 @@ const UserDashboard = () => {
               <th>Check IN</th>
               <th>Check-Out </th>
               <th>Status</th>
-              <th>Phone</th>
-              <th>Amount</th>
+              {
+                userType === "agent" ? <th>Phone</th> : ""
+              }
+              <th>Amount(Rs)</th>
             </tr>
           </thead>
           <tbody>
@@ -495,17 +501,19 @@ const UserDashboard = () => {
             ) : (
               pastBookings.map((booking, index) => (
                 <tr key={booking.id}>
-                <td>{index + 1}</td>
-                <td>{booking.customerName}</td>
-                <td>{booking.booking_id}</td>
-                <td>{booking.checkInDate}</td>
-                <td>{booking.checkOutDate}</td>
-                <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
-                  {booking.status}
-                </td>
-                <td>{booking.customerPhone}</td>
-                <td>{booking.amount}</td>
-              </tr>
+                  <td>{index + 1}</td>
+                  <td>{booking.customerName}</td>
+                  <td>{booking.booking_id}</td>
+                  <td>{booking.checkInDate}</td>
+                  <td>{booking.checkOutDate}</td>
+                  <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
+                    {booking.status}
+                  </td>
+                  {
+                    userType === "agent" ? <td>{booking.customerPhone}</td> : ""
+                  }
+                  <td>{booking.amount}</td>
+                </tr>
               ))
             )}
           </tbody>
@@ -532,7 +540,7 @@ const UserDashboard = () => {
               <th>Id</th>
               <th>Transaction ID</th>
               <th>Order Id</th>
-              <th>Amount</th>
+              <th>Amount(Rs)</th>
               <th>Date</th>
               <th>Status</th>
             </tr>
