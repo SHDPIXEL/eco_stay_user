@@ -6,6 +6,7 @@ import trustimg from "../assets/images/trustimg.png";
 import ReviewModal from "./ReviewModal";
 import API from "../api";
 import { AuthContext } from "../context/AuthContext";
+import axios from "axios";
 
 
 
@@ -35,10 +36,14 @@ const Checkouts = () => {
     pincode: "",
   });
 
-  // console.log("Agent booking for user data", profileData)
+
   const [idProofFile, setIdProofFile] = useState(null);
   const [isDisable, setIsDisable] = useState(true);
   const [isChecked, setIsChecked] = useState(false);
+  const [userLocation, setUserLocation] = useState("");
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
 
   function loadScript(src) {
@@ -54,6 +59,67 @@ const Checkouts = () => {
       document.body.appendChild(script);
     });
   }
+
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setLoadingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        // console.log(`Latitude: ${latitude}, Longitude: ${longitude}, Accuracy: ${accuracy} meters`);
+
+        try {
+          // Reverse geocode using OpenStreetMap (Nominatim API)
+          const response = await axios.get(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+
+          if (response.data && response.data.address) {
+            const { road, city, state, country, postcode } = response.data.address;
+            const fullAddress = response.data.display_name;
+
+            // Updating form fields dynamically
+            setFormData((prevFormData) => ({
+              ...prevFormData,
+              address: fullAddress || "",
+              city: city || "",
+              state: state || "",
+              country: country || "",
+              pincode: postcode || "",
+            }));
+
+            // console.log("User Location:", fullAddress);
+          } else {
+            alert("Failed to get address. Please enter it manually.");
+          }
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          alert("Error retrieving location. Please try again.");
+        } finally {
+          setLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to retrieve location. Make sure location services are enabled.");
+        setLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+
+
 
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
@@ -98,7 +164,7 @@ const Checkouts = () => {
       try {
         const response = await API.post("/auth/user/user-data"); // Fetch based on u_id
         setProfileData(response.data);
-        console.log("profile data", response.data)
+        // console.log("profile data", response.data)
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -150,6 +216,17 @@ const Checkouts = () => {
       });
     }
   };
+
+
+  useEffect(() => {
+    if (!location.state) {
+      navigate("/book-your-stay");
+    }
+  }, [location.state, navigate])
+
+  if (!location.state) {
+    return null;
+  }
 
   // Extract all the booking details from location state
   const {
@@ -213,7 +290,8 @@ const Checkouts = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const formDataObj = Object.fromEntries(formData.entries());
-    console.log("form data object:", formDataObj)
+
+    setPhoneNumber(formDataObj.phoneNumber); 
 
     const errors = validateForm(formDataObj);
     setFormErrors(errors);
@@ -276,18 +354,20 @@ const Checkouts = () => {
   const handleProceed = () => {
     const userType = localStorage.getItem("type");
 
+    if (profileData.phone.length > 10) {
+      alert("Phone number cannot be more than 10 digits.");
+      return;
+    }
+
     if (userType !== "agent") {
-      // If not an agent, directly show details
       setShowDetails(true);
       return;
     }
 
-    // If user is an agent, validate fields (excluding idProof)
     const { idProof, ...restProfileData } = profileData;
-    console.log(profileData);
-    console.log(restProfileData);
 
     const values = Object.values(restProfileData);
+    console.log("values of the object",values)
     const isValid = values.every((value) => value && value.trim() !== "");
 
     if (isValid) {
@@ -308,12 +388,12 @@ const Checkouts = () => {
     e.preventDefault();
 
     if (!isChecked) {
-      setErrorMessage("Please check the terms and conditions to proceed."); // ✅ Show error message
+      setErrorMessage("Please check the terms and conditions to proceed.");
       return;
     }
-    console.log("error messsage", errorMessage)
 
-    setErrorMessage(""); // ✅ Clear error when checkbox is checked
+    setErrorMessage("");
+    setLoading(true);
 
     const res = await loadScript(
       "https://checkout.razorpay.com/v1/checkout.js"
@@ -321,6 +401,7 @@ const Checkouts = () => {
 
     if (!res) {
       alert("Razorpay SDK failed to load. Are you online?");
+      setLoading(false);
       return;
     }
 
@@ -383,82 +464,85 @@ const Checkouts = () => {
           grand_total: grandTotal,
         }
 
-    const result = await API.post("/auth/user/booking/orders", bookingPayload);
+    try {
+      const result = await API.post("/auth/user/booking/orders", bookingPayload);
 
-    if (!result) {
-      alert("Server error. Are you online?");
-      return;
+      if (!result) {
+        alert("Server error. Are you online?");
+        setLoading(false);
+        return;
+      }
+      const { amount, id: order_id, currency } = result.data.order;
+      const { id: booking_id } = result.data.bookingDetails;
+
+      const options = {
+        key: "rzp_test_G0gvgyqODDYfyq", // Enter the Key ID generated from the Dashboard
+        amount: amount,
+        currency: currency,
+        name: "Eco Stay - Vrruksh",
+        description: "Payment for room booking",
+        image: "https://www.metamatrixtech.com/img/favicon.webp",
+        order_id: order_id,
+        handler: async function (response) {
+          const data = {
+            orderCreationId: order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpaySignature: response.razorpay_signature,
+            booking: booking_id,
+            amount,
+          };
+
+          const result = await API.post("auth/user/booking/success", data);
+          // console.log(result.data);
+          // alert(result.data.msg);
+          // console.log("pament success check", result.data.msg)
+          // navigate("/thankyou")        
+          if (result.data.paymentDetails.status === "success") {
+            const bookingIdStr = String(result.data.bookingId);  // Ensure booking_id is a string
+
+            // Get current date and time
+            const currentDate = new Date();
+            const epochTime = currentDate.getTime();  // Get the current time in epoch format (milliseconds)
+
+            // Combine booking_id, current date/time, and epoch time
+            const combinedString = `${bookingIdStr}-${currentDate.toISOString()}-${epochTime}`;
+
+            // Encode the combined string
+            const encodedBookingId = btoa(combinedString);  // Base64 encode the string
+
+            navigate(`/thankyou?id=${encodedBookingId}`, {
+              state: {
+                paymentDetails: result.data.paymentDetails,
+              },
+            });
+
+          } else navigate('/');
+
+
+        },
+        prefill: {
+          name: profileData.name,
+          email: profileData.email,
+          contact: profileData.phone,
+        },
+        notes: {
+          address: profileData.address,
+        },
+        theme: {
+          color: "#61dafb",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+
+    } catch (error) {
+      alert("Something went wrong. Please try again.");
+      console.error("Error processing payment:", error);
+    } finally {
+      setLoading(false);
     }
-    console.log(result.data.bookingDetails);
-    console.log(result.data.bookingDetails.id);
-    const { amount, id: order_id, currency } = result.data.order;
-    const { id: booking_id } = result.data.bookingDetails;
-
-    const options = {
-      key: "rzp_test_G0gvgyqODDYfyq", // Enter the Key ID generated from the Dashboard
-      amount: amount,
-      currency: currency,
-      name: "Eco Stay - Vrruksh",
-      description: "Payment for room booking",
-      image: "https://www.metamatrixtech.com/img/favicon.webp",
-      order_id: order_id,
-      handler: async function (response) {
-        const data = {
-          orderCreationId: order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpayOrderId: response.razorpay_order_id,
-          razorpaySignature: response.razorpay_signature,
-          booking: booking_id,
-          amount,
-        };
-
-        console.log("data before posting", data)
-        const result = await API.post("auth/user/booking/success", data);
-        console.log("payment successfully created", result.data)
-        // console.log(result.data);
-        // alert(result.data.msg);
-        // console.log("pament success check", result.data.msg)
-        // navigate("/thankyou")        
-        if (result.data.paymentDetails.status === "success") {
-          console.log("result status", result.data.status)
-          const bookingIdStr = String(result.data.bookingId);  // Ensure booking_id is a string
-
-          // Get current date and time
-          const currentDate = new Date();
-          const epochTime = currentDate.getTime();  // Get the current time in epoch format (milliseconds)
-
-          // Combine booking_id, current date/time, and epoch time
-          const combinedString = `${bookingIdStr}-${currentDate.toISOString()}-${epochTime}`;
-
-          // Encode the combined string
-          const encodedBookingId = btoa(combinedString);  // Base64 encode the string
-
-          navigate(`/thankyou?id=${encodedBookingId}`, {
-            state: {
-              paymentDetails: result.data.paymentDetails,
-            },
-          });
-
-          console.log("from checkout", result.data.paymentDetails)
-        } else navigate('/');
-
-
-      },
-      prefill: {
-        name: profileData.name,
-        email: profileData.email,
-        contact: profileData.phone,
-      },
-      notes: {
-        address: profileData.address,
-      },
-      theme: {
-        color: "#61dafb",
-      },
-    };
-
-    const paymentObject = new window.Razorpay(options);
-    paymentObject.open();
   }
 
   return (
@@ -594,6 +678,7 @@ const Checkouts = () => {
                                 name="phoneNumber"
                                 placeholder="Enter Mobile Number"
                                 isInvalid={!!formErrors.phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
                               />
                             </div>
                             <Form.Control.Feedback type="invalid">
@@ -638,9 +723,11 @@ const Checkouts = () => {
                                 className="Addressinput"
                                 placeholder="Enter your complete address"
                                 isInvalid={!!formErrors.address}
+                                value={formData.address} // Auto-filled value
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                               />
-                              <span className="loacte">
-                                <i className="bi bi-geo-alt-fill"></i> Locate Me
+                              <span className="loacte" onClick={handleLocateMe}>
+                                <i className="bi bi-geo-alt-fill"></i> {loadingLocation ? "Locating..." : "Locate Me"}
                               </span>
                             </div>
                             <Form.Control.Feedback type="invalid">
@@ -666,6 +753,8 @@ const Checkouts = () => {
                               className="controlinput"
                               placeholder="Enter City"
                               isInvalid={!!formErrors.city}
+                              value={formData.city} // Auto-filled value
+                              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.city}
@@ -685,6 +774,8 @@ const Checkouts = () => {
                               className="controlinput"
                               placeholder="Enter State"
                               isInvalid={!!formErrors.state}
+                              value={formData.state} // Auto-filled value
+                              onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.state}
@@ -707,6 +798,8 @@ const Checkouts = () => {
                               className="controlinput"
                               placeholder="Enter Country"
                               isInvalid={!!formErrors.country}
+                              value={formData.country} // Auto-filled value
+                              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.country}
@@ -727,6 +820,8 @@ const Checkouts = () => {
                               className="controlinput"
                               placeholder="Enter your PIN Code"
                               isInvalid={!!formErrors.pincode}
+                              value={formData.pincode} // Auto-filled value
+                              onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.pincode}
@@ -793,7 +888,8 @@ const Checkouts = () => {
                           className="bookcombtn booknowbtn w-100"
                           type="submit"
                         >
-                          Proceed
+                            Proceed with these details
+                          
                         </Button>
                       </div>
                     </div>
@@ -806,7 +902,7 @@ const Checkouts = () => {
                       <div className="col-md-12">
                         <p>
                           Verify your mobile number using OTP. We have sent an
-                          SMS with 6-digits OTP on your mobile number +91...
+                          SMS with 6-digits OTP on your mobile number +91 {phoneNumber}
                         </p>
                         <p>Time remaining: {formatTime(timer)}</p>
                       </div>
@@ -900,10 +996,13 @@ const Checkouts = () => {
                               Phone:
                             </Form.Label>
                             <Form.Control
-                              type="text"
+                              type="tel"
                               value={profileData.phone}
                               disabled={isDisable}
-                              onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} // Handle input change
+                              onChange={(e) => {
+                                const input = e.target.value.slice(0, 10);
+                                setProfileData({ ...profileData, phone: input });
+                              }}
                               readOnly={isDisable}
                               required
                               placeholder="Enter your phone number"
@@ -1117,13 +1216,18 @@ const Checkouts = () => {
                       <button
                         className="bookcombtn booknowbtn w-100"
                         onClick={payment_init}
-                        // disabled={!isChecked}
+                      // disabled={!isChecked}
                       >
-                        {" "}
-                        Proceed to pay{" "}
+                        {loading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Processing
+                          </>
+                        ) : (
+                          "Proceed to Pay"
+                        )}
                       </button>
 
-                      {/* ✅ Show error message under the button */}
                       {errorMessage && (
                         <p style={{ color: "red", marginTop: "5px", textAlign: "center" }}>
                           {errorMessage}

@@ -200,7 +200,6 @@ const BookYourStayPage = () => {
     try {
       const response = await API.get("/packages/package");
       setPackagesData(response.data);
-      console.log(response.data)
     } catch (error) {
       console.error("Error fetching packages:", error);
     }
@@ -245,8 +244,6 @@ const BookYourStayPage = () => {
   const validateBooking = async (roomId) => {
     const errors = {};
 
-
-    // ✅ Await the API response before proceeding
     const nonAvailability = await ChecknonAvailableDates(roomId);
 
     if (!checkInDate) {
@@ -272,9 +269,16 @@ const BookYourStayPage = () => {
       errors.totalPrice = "Total price calculation is missing";
     }
 
+    const room = connectedPackages.find(r => r.id === roomId);
+    const availableCottages = JSON.parse(room?.status || "{}").available || 0;
+  
+    if (availableCottages === 0) {
+      errors.selectedCottages = "No cottages are available for booking!";
+      alert("No cottages are available for booking! Please try another room or date.");
+    } else if (!selectedCottages || selectedCottages > availableCottages) {
+      errors.selectedCottages = "Invalid number of cottages selected.";
+    }
 
-
-    // ✅ Check if the selected dates match any non-available dates
     if (nonAvailability) {
 
       const formattedCheckInDate = new Date(checkInDate).toISOString().split("T")[0];
@@ -853,8 +857,10 @@ const BookYourStayPage = () => {
                             {validationErrors.checkOutDate}
                           </p>
                         )}
-                        {validationErrors.checkInDate && (
-                          <p className="text-danger">{validationErrors.checkInDate}</p>
+                        {validationErrors.checkInDate && activeRoomId === room.id &&  (
+                          <p className="text-danger" style={{
+                            textAlign: "center"
+                          }}>{validationErrors.checkInDate}</p>
                         )}
                       </div>
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import API from "../api";
 import Loginimg from "../assets/images/Loginimg.png";
 import Form from 'react-bootstrap/Form';
@@ -7,6 +7,8 @@ import googliconimg from "../assets/images/Googleicon.png";
 import agenticon from "../assets/images/agenticon.png";
 import VerifyLoginModal from "./VerifyLoginModal";
 import { Link } from "react-router-dom";
+import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
+import { AuthContext } from "../context/AuthContext";
 
 
 const LoginModal = (props) => {
@@ -14,24 +16,79 @@ const LoginModal = (props) => {
     const [verifyModalshow, setVerifyModalshow] = useState(false);
     const [mobileNumber, setMobileNumber] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
-    const [isSendingOtp, setIsSendingOtp] = useState(false); // To track OTP sending status
-    const [otpSentMessage, setOtpSentMessage] = useState(""); // To show success message after OTP is sent
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // To track user login status
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [otpSentMessage, setOtpSentMessage] = useState("");
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showPhoneNumberModal, setShowPhoneNumberModal] = useState(false);
+    const [googleUserData, setGoogleUserData] = useState(null);
 
-    // Check if the user is logged in by checking the token
+
+    const { login } = useContext(AuthContext);
+
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         if (token) {
-            setIsLoggedIn(true); // If token is present, user is logged in
+            setIsLoggedIn(true);
         } else {
-            setIsLoggedIn(false); // Otherwise, user is not logged in
+            setIsLoggedIn(false);
         }
-    }, [loginModalshow]); // This runs when the modal is opened
+    }, [loginModalshow]);
 
     const showVerify = () => {
         setVerifyModalshow(true);
         setLoginModalshow(false);
     }
+
+    const handleGoogleLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
+            // Extract user details
+            const userData = {
+                name: user.displayName,
+                email: user.email,
+                idProof: user.uid,
+                phone: "", 
+            };
+
+            setGoogleUserData(userData);
+            setShowPhoneNumberModal(true); 
+        } catch (error) {
+            console.error("Google login error:", error);
+            setErrorMessage("Failed to log in with Google. Please try again.");
+        }
+    };
+
+    const handlePhoneNumberSubmit = async () => {
+        if (!mobileNumber) {
+            setErrorMessage("Please enter a valid phone number.");
+            return;
+        }
+
+        try {
+            const userDataWithPhone = { ...googleUserData, phone: mobileNumber };
+            const response = await API.post("/auth/user/user/google-login", userDataWithPhone);
+
+            console.log("google login response", response)
+            console.log("gooel login response data", response.data)
+
+            if (response.status === 200) {
+                const { token } = response.data;
+                console.log("response token", token)
+                login(token, "user");
+                setIsLoggedIn(true);
+                setShowPhoneNumberModal(false);
+                setLoginModalshow(false);
+            }
+        } catch (error) {
+            console.error("Error updating phone number:", error);
+            setErrorMessage("Failed to update phone number. Please try again.");
+        }
+    };
+
+
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,7 +105,7 @@ const LoginModal = (props) => {
                 setOtpSentMessage("OTP sent successfully!"); // Show success message
                 setIsSendingOtp(false); // Reset OTP sending state
                 showVerify(); // Show Verify Login Modal
-            
+
             }
         } catch (error) {
             console.error("Error sending OTP:", error);
@@ -109,17 +166,48 @@ const LoginModal = (props) => {
                     <div className="Orbtn">
                         <p>OR</p>
                     </div>
-                    <div className="loginGoogleBtn"> <img src={googliconimg} alt="" className="me-2" /> Login with Google</div>
+
+                    <div className="loginGoogleBtn" onClick={handleGoogleLogin}>
+                        <img src={googliconimg} alt="" className="me-2" /> Login with Google
+                    </div>
+
                     <div className="loginAgent">
                         <div><img src={agenticon} alt="" width={150} /></div>
                         <h5>Are you a travel agent associated with Virya wildlife tours- Vrruksh Eco stay?</h5>
                         <Link to='/agentlogin'>
-                        <div className="agentbtn">Login as Travel agent</div>
+                            <div className="agentbtn">Login as Travel agent</div>
                         </Link>
                     </div>
                 </div>
             </div>
             <VerifyLoginModal verifyModalshow={verifyModalshow} setVerifyModalshow={setVerifyModalshow} mobileNumber={mobileNumber} />
+
+            {showPhoneNumberModal && (
+                <>
+                    <div className="phoneNumberModalOverlay"></div>
+                    <div className="phoneNumberModal">
+                        <h4>Enter Your Phone Number</h4>
+                        <Form.Group className="mb-3">
+                            <div className="formlogininput">
+                                <span className="leftinput"> +91</span>
+                                <Form.Control
+                                    type="tel"
+                                    size="lg"
+                                    className="logininput"
+                                    placeholder="Enter your mobile number"
+                                    value={mobileNumber}
+                                    onChange={(e) => setMobileNumber(e.target.value)}
+                                />
+                            </div>
+                        </Form.Group>
+                        {errorMessage && <p className="text-danger">{errorMessage}</p>}
+                        <Button className="bookcombtn w-100 mt-0" onClick={handlePhoneNumberSubmit}>
+                            Submit
+                        </Button>
+                    </div>
+                </>
+            )}
+
         </>
     );
 }

@@ -25,10 +25,8 @@ const AgentLogin = () => {
       const response = await API.post("/auth/agent/login", { email, password });
 
       if (response.status === 200) {
-        console.log("Login successful, saving token...");
         // Call the login method from AuthContext
         login(response.data.token, "agent");
-        console.log("Navigating to home...");
         navigate("/"); 
       } else {
         setError("Invalid email or password. Please try again.");

@@ -69,7 +69,6 @@ const Home = () => {
             try {
                 const response = await API.get("rooms/room");
                 const data = response.data;
-                console.log("fetching room data", data);
                 setRooms(data);
             } catch (e) {
                 console.error("Error in fetching room data", e)

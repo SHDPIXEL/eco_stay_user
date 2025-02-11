@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import reviewPack1 from "../assets/images/reviewPack1.png";
 import { differenceInDays } from "date-fns";
@@ -7,6 +7,16 @@ const ReviewBooking = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
+
+  useEffect(()=> {
+    if(!location.state){
+      navigate("/book-your-stay");
+    }
+  },[location.state, navigate])
+
+  if(!location.state){
+    return null;
+  }
 
   const {
     checkInDate,

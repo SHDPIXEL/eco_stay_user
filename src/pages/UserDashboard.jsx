@@ -77,11 +77,8 @@ const UserDashboard = () => {
       const endPoint = userType === 'agent'
         ? `/payments/payment/agent/${userId}`
         : `/payments/payment/user/${userId}`;
-      console.log(userId)
-      console.log(endPoint)
 
       const response = await API.get(endPoint);
-      console.log(response.data)
       setPaymentHistory(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching payment history:", error);
