@@ -1,15 +1,17 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
+
 const firebaseConfig = {
-  apiKey: "AIzaSyAZWDnbkCfLd6Pk2kcnjinT5ayxs600jgM",
-  authDomain: "viryawildlife-c92c3.firebaseapp.com",
-  projectId: "viryawildlife-c92c3",
-  storageBucket: "viryawildlife-c92c3.appspot.com",
-  messagingSenderId: "272424787692",
-  appId: "1:272424787692:web:e609f0e1a71435e6014fc9",
-  measurementId: "G-J9EWE1GX1X"
+  apiKey: process.env.REACT_APP_FIRE_BASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIRE_BASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIRE_BASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIRE_BASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIRE_BASE_MESSAGE_SENDERID,
+  appId: process.env.REACT_APP_FIRE_BASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIRE_BASE_MEASUREMENTID,
 };
+
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
