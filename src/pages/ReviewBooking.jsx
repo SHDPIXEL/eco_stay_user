@@ -2,19 +2,21 @@ import React, { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import reviewPack1 from "../assets/images/reviewPack1.png";
 import { differenceInDays } from "date-fns";
+import { BASE_URL } from "../api";
+
 
 const ReviewBooking = () => {
   const navigate = useNavigate();
 
   const location = useLocation();
 
-  useEffect(()=> {
-    if(!location.state){
+  useEffect(() => {
+    if (!location.state) {
       navigate("/book-your-stay");
     }
-  },[location.state, navigate])
+  }, [location.state, navigate])
 
-  if(!location.state){
+  if (!location.state) {
     return null;
   }
 
@@ -25,23 +27,26 @@ const ReviewBooking = () => {
     selectedOption,
     selectedPackage,
     selectedCottages,
+    selectedRoomImage,
   } = location.state;
+
+  console.log("room image", selectedRoomImage)
 
   // Format the dates as needed (optional)
   const formattedCheckInDate = checkInDate
     ? new Date(checkInDate).toLocaleDateString("en-US", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-      })
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    })
     : "Not Selected";
 
   const formattedCheckOutDate = checkOutDate
     ? new Date(checkOutDate).toLocaleDateString("en-US", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-      })
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+    })
     : "Not Selected";
 
   // Update these variables to use the full room data
@@ -61,25 +66,31 @@ const ReviewBooking = () => {
     selectedOption === 1
       ? selectedRoom?.single_base_price
       : selectedRoom?.double_base_price;
-  
+
   const packagePrice = selectedPackage?.package_price || 0;
 
   const totalNights = differenceInDays(new Date(checkOutDate), new Date(checkInDate));
-  
+
+
   const pricePerNight = basePrice + packagePrice;
   const newPricePerNight = newPrice + packagePrice;
   const grandTotal = pricePerNight * totalNights * selectedCottages;
   const newGrandTotal = newPricePerNight * totalNights * selectedCottages;
 
-  const discountPrice = newGrandTotal - grandTotal;
-  const discountPercentage = grandTotal && newGrandTotal
-  ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
-  : 0;
+  console.log("newGrandTotal: ", newGrandTotal, "grandTotal: ", grandTotal);
+
+  // const discountPrice = newGrandTotal - grandTotal;
+  let discountPrice = Math.abs(newGrandTotal - grandTotal);
+  if (newGrandTotal < grandTotal) discountPrice = 0; 
+
+  const discountPercentage = grandTotal && newGrandTotal && newGrandTotal > grandTotal
+    ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
+    : 0;
 
   // Calculate GST based on amount
   const gstRate = grandTotal <= 7500 ? 0.12 : 0.18;
   const gstAmount = grandTotal * gstRate;
-  
+
   const finalAmount = grandTotal + gstAmount;
 
 
@@ -169,7 +180,8 @@ const ReviewBooking = () => {
               <div className="mt-3 reviewbookigbox">
                 <div className="d-flex w-100">
                   <div className="imgd">
-                    <img src={reviewPack1} alt="" />
+                    <img src={`${BASE_URL}/assets/images/${selectedRoomImage}`}
+                      alt="" />
                   </div>
                   <div className="packDetails">
                     <div>
@@ -198,7 +210,7 @@ const ReviewBooking = () => {
                           <h6><span className="textdis">₹ {(newPrice).toFixed(2)}</span> ₹ {basePrice.toFixed(2)}/room/per night</h6>
                           <h6>₹ {packagePrice.toFixed(2)}/package</h6>
                           <h6>Total Price : ₹ {pricePerNight.toFixed(2)} * {selectedCottages} Cottage</h6>
-                      
+
                         </div>
                       </div>
                     </div>
@@ -274,20 +286,20 @@ const ReviewBooking = () => {
                 <div className="roomcaldiv">
                   <div className="leftRoomPrice">
                     <h5>{selectedCottages} Cottage X {totalNights} Nights</h5>
-                    <p style={{textTransform: "capitalize"}}>({selectedRoom?.room_name} {selectedPackage?.name})</p>
+                    <p style={{ textTransform: "capitalize" }}>({selectedRoom?.room_name} {selectedPackage?.name})</p>
                   </div>
                   <div className="rightRoomPrice">₹ {newGrandTotal.toFixed(2)}</div>
                 </div>
-                
+
                 <div className="TotalDiscountDiv">
                   <div className="leftTotalDiscount text-color">
                     <h5>
                       Total Discount <i className="bi bi-info-circle h6" onClick={() => alert(`${discountPercentage}% Off`)}
-                        style={{cursor: 'pointer'}}></i>
+                        style={{ cursor: 'pointer' }}></i>
                     </h5>
                   </div>
                   <div className="rightTotalDiscount text-color">
-                  ₹ {discountPrice.toFixed(2)}
+                    ₹ {discountPrice.toFixed(2)}
                   </div>
                 </div>
                 <hr />
@@ -302,10 +314,10 @@ const ReviewBooking = () => {
                   <div className="lefttax">
                     <h5>
                       Taxes & Service Fees{" "}
-                      <i 
+                      <i
                         className="bi bi-info-circle h6"
                         onClick={() => alert(`${gstRate * 100}% GST\nService Charges\nBooking Fees\nConvenience Fees`)}
-                        style={{cursor: 'pointer'}}
+                        style={{ cursor: 'pointer' }}
                       ></i>
                     </h5>
                   </div>

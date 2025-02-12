@@ -18,6 +18,9 @@ const ContactSection = () => {
         rooms: 1,
     });
 
+    const [errors, setErrors] = useState({});
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -34,20 +37,56 @@ const ContactSection = () => {
         setFormData((prev) => ({ ...prev, [field]: Math.max(1, prev[field] - 1) }));
     };
 
+    const validateForm = () => {
+        let newErrors = {};
+        if (!formData.name) newErrors.name = "Full name is required";
+        if (!formData.mobile) newErrors.mobile = "Mobile number is required";
+        else if (formData.mobile.length !== 10) newErrors.mobile = "Mobile number must be 10 digits";
+        if (!formData.email) newErrors.email = "Email is required";
+        if (!formData.checkInDate) newErrors.checkInDate = "Check-in date is required";
+        if (!formData.checkOutDate) newErrors.checkOutDate = "Check-out date is required";
+        else if (new Date(formData.checkOutDate) <= new Date(formData.checkInDate)) newErrors.checkOutDate = "Check-out date must be later than check-in date";
+        if (formData.adults < 1) newErrors.adults = "At least one adult is required";
+        if (formData.rooms < 1) newErrors.rooms = "At least one room is required";
+        return newErrors;
+    };
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const newErrors = validateForm();
+
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+
+        setErrors({});
 
         try {
             const response = await API.post("enquiries/enquiry", formData, {
                 headers: { "Content-Type": "application/json" },
             });
 
-            if (response.status === 200) {
+            if (response.status === 200 || response.status === 201) {
                 alert("Inquiry submitted successfully!");
+                setFormData({
+                    name: "",
+                    mobile: "",
+                    email: "",
+                    checkInDate: "",
+                    checkOutDate: "",
+                    adults: 1,
+                    children: 1,
+                    rooms: 1,
+                });
+
             }
         } catch (error) {
             console.error("Error submitting inquiry:", error);
             alert("Failed to submit inquiry. Please try again.");
+
         }
     };
 
@@ -67,18 +106,27 @@ const ContactSection = () => {
                                 <div className="row">
                                     <div className="col-md-12 mb-3">
                                         <Form.Control name="name" value={formData.name} onChange={handleChange} size="lg" type="text" placeholder="* Your full name" required />
+                                        {errors.name && <div className="text-danger">{errors.name}</div>}
                                     </div>
                                     <div className="col-md-6 mb-3">
-                                        <Form.Control name="mobile" value={formData.mobile} onChange={handleChange} size="lg" type="number" placeholder="*Your mobile number" required />
+                                        <Form.Control name="mobile" value={formData.mobile} onChange={handleChange} size="lg" type="tel" placeholder="*Your mobile number" required />
+                                        {errors.mobile && <div className="text-danger">{errors.mobile}</div>}
+
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <Form.Control name="email" value={formData.email} onChange={handleChange} size="lg" type="email" placeholder="*Your email ID" required />
+                                        {errors.email && <div className="text-danger">{errors.email}</div>}
+
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <Form.Control name="checkInDate" value={formData.checkInDate} onChange={handleChange} size="lg" type="date" placeholder="*Check-In Date" required />
+                                        {errors.checkInDate && <div className="text-danger">{errors.checkInDate}</div>}
+
                                     </div>
                                     <div className="col-md-6 mb-3">
                                         <Form.Control name="checkOutDate" value={formData.checkOutDate} onChange={handleChange} size="lg" type="date" placeholder="*Check-Out Date" required />
+                                        {errors.checkOutDate && <div className="text-danger">{errors.checkOutDate}</div>}
+
                                     </div>
 
                                     {/* Children (Single Occupancy) */}
@@ -103,6 +151,8 @@ const ContactSection = () => {
                                                 <Button variant="outline-secondary" onClick={() => handleIncrement("adults")}><i className="bi bi-plus-lg"></i></Button>
                                             </div>
                                         </Form.Group>
+                                        {errors.adults && <div className="text-danger">{errors.adults}</div>}
+
                                     </div>
 
                                     {/* Number of Rooms */}
@@ -115,6 +165,8 @@ const ContactSection = () => {
                                                 <Button variant="outline-secondary" onClick={() => handleIncrement("rooms")}><i className="bi bi-plus-lg"></i></Button>
                                             </div>
                                         </Form.Group>
+                                        {errors.rooms && <div className="text-danger">{errors.rooms}</div>}
+
                                     </div>
 
                                     <div className="col-md-12 mb-3 text-dark">

@@ -271,7 +271,7 @@ const BookYourStayPage = () => {
 
     const room = connectedPackages.find(r => r.id === roomId);
     const availableCottages = JSON.parse(room?.status || "{}").available || 0;
-  
+
     if (availableCottages === 0) {
       errors.selectedCottages = "No cottages are available for booking!";
       alert("No cottages are available for booking! Please try another room or date.");
@@ -308,6 +308,17 @@ const BookYourStayPage = () => {
 
     if (isValid) {
       const selectedRoomData = connectedPackages.find(room => room.id === roomId);
+      
+      console.log("selected room data", selectedRoomData)
+
+      let selectedImage = null;
+      if (selectedRoomData?.room_images) {
+          const roomImages = JSON.parse(selectedRoomData.room_images);
+          if (roomImages.length > 0) {
+              selectedImage = roomImages[0]; // Get the first image
+          }
+      }
+      console.log("room image", selectedImage);
 
       navigate("/review-booking", {
         state: {
@@ -317,7 +328,8 @@ const BookYourStayPage = () => {
           selectedOption,
           selectedPackage,
           totalPrice,
-          selectedCottages
+          selectedCottages,
+          selectedRoomImage: selectedImage, // Pass image directly
         },
       });
     }
@@ -579,7 +591,7 @@ const BookYourStayPage = () => {
                         <img
                           src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndexes[index] || 0]}`}
                           alt="Room"
-                          className="slider-image"
+                          className="slider-image rounded-img"
                         />
 
                         <button
@@ -857,7 +869,7 @@ const BookYourStayPage = () => {
                             {validationErrors.checkOutDate}
                           </p>
                         )}
-                        {validationErrors.checkInDate && activeRoomId === room.id &&  (
+                        {validationErrors.checkInDate && activeRoomId === room.id && (
                           <p className="text-danger" style={{
                             textAlign: "center"
                           }}>{validationErrors.checkInDate}</p>
