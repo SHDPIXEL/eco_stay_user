@@ -202,7 +202,7 @@ const Home = () => {
                         {
                             rooms.slice(0, 3).map((room) => (
                                 <div className="col-lg-4 mt-4 mb-lg-0">
-                                    <div className="luximgbox position-relative">
+                                    <div className="luximgbox position-relative rounded-img">
                                         {
                                             JSON.parse(room.room_images).slice(0,1).map((image) => (
                                                 <img src={`${BASE_URL}/assets/images/${image}`} alt="luximg" width={"100%"} />

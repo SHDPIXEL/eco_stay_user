@@ -43,6 +43,7 @@ const Checkouts = () => {
   const [userLocation, setUserLocation] = useState("");
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
 
@@ -291,7 +292,7 @@ const Checkouts = () => {
     const formData = new FormData(e.target);
     const formDataObj = Object.fromEntries(formData.entries());
 
-    setPhoneNumber(formDataObj.phoneNumber); 
+    setPhoneNumber(formDataObj.phoneNumber);
 
     const errors = validateForm(formDataObj);
     setFormErrors(errors);
@@ -321,8 +322,11 @@ const Checkouts = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    setIsOtpLoading(true)
+
     if (otpExpired) {
       setErrorMessage("OTP has expired. Please request a new one.");
+      setIsOtpLoading(false)
       return;
     }
     try {
@@ -334,19 +338,22 @@ const Checkouts = () => {
         "/auth/user/booking_register",
         verifyData
       );
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         setShowVerify(false);
-        const token = response.data.token; // Assuming the token is in response.data.token
+        const token = response.data.token; 
         login(token);
         setProfileData(response.data.user);
         console.log("use data on login", response.data)
         setOtpVerifiedMessage("OTP Verified successfully!");
+        setIsOtpLoading(false)
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       setFormErrors({
         submit: error.response?.data || "Error verifying OTP " + error.message,
       });
+    } finally {
+      setIsOtpLoading(false)
     }
   };
 
@@ -367,7 +374,7 @@ const Checkouts = () => {
     const { idProof, ...restProfileData } = profileData;
 
     const values = Object.values(restProfileData);
-    console.log("values of the object",values)
+    console.log("values of the object", values)
     const isValid = values.every((value) => value && value.trim() !== "");
 
     if (isValid) {
@@ -888,8 +895,8 @@ const Checkouts = () => {
                           className="bookcombtn booknowbtn w-100"
                           type="submit"
                         >
-                            Proceed with these details
-                          
+                          Proceed with these details
+
                         </Button>
                       </div>
                     </div>
@@ -931,9 +938,17 @@ const Checkouts = () => {
                               type="submit"
                               disabled={otpExpired}
                             >
-                              Verify OTP
+                              {loading ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-2"></span>
+                                  Verifying
+                                </>
+                              ) : (
+                                "Verify OTP"
+                              )}
+
                             </Button>
-                            {otpExpired && (
+                            {(otpExpired || formErrors.submit) && (
                               <Button
                                 className="bookcombtn w-100 mt-2"
                                 onClick={resendOTP}

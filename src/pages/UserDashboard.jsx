@@ -433,7 +433,7 @@ const UserDashboard = () => {
           <tbody>
             {upcomingBookings.length === 0 ? (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>
+                <td colSpan={8} style={{ textAlign: "center" }}>
                   No data found
                 </td>
               </tr>
@@ -491,7 +491,7 @@ const UserDashboard = () => {
           <tbody>
             {pastBookings.length === 0 ? (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>
+                <td colSpan="8" style={{ textAlign: "center" }}>
                   No data found
                 </td>
               </tr>
@@ -545,7 +545,7 @@ const UserDashboard = () => {
           <tbody>
             {paymentHistory.length === 0 ? (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center" }}>
+                <td colSpan="6" style={{ textAlign: "center" }}>
                   No data found
                 </td>
               </tr>
