@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import reviewPack1 from "../assets/images/reviewPack1.png";
 import { differenceInDays } from "date-fns";
-import { BASE_URL } from "../api";
+import API, { BASE_URL } from "../api";
 
 
 const ReviewBooking = () => {
   const navigate = useNavigate();
+  const [offers, setOffers] = useState(0);
+  const userType = useMemo(() => localStorage.getItem("type"), []);
 
   const location = useLocation();
 
@@ -15,6 +17,26 @@ const ReviewBooking = () => {
       navigate("/book-your-stay");
     }
   }, [location.state, navigate])
+
+
+  useEffect(() => {
+    const fetchAgentData = async () => {
+      try {
+        const response = await API.post("/auth/agent/agent-data");
+        if (userType === "agent") {
+          const agentOffer = response.data.offers ? Number(response.data.offers) : 0;
+          setOffers(agentOffer);
+          console.log("Agent Offer (Discount %):", agentOffer);
+        }
+      } catch (error) {
+        console.error("Error fetching agent data:", error);
+      }
+    };
+
+    if (userType === "agent") fetchAgentData();
+  }, [userType]);
+
+
 
   if (!location.state) {
     return null;
@@ -29,8 +51,6 @@ const ReviewBooking = () => {
     selectedCottages,
     selectedRoomImage,
   } = location.state;
-
-  console.log("room image", selectedRoomImage)
 
   // Format the dates as needed (optional)
   const formattedCheckInDate = checkInDate
@@ -57,6 +77,8 @@ const ReviewBooking = () => {
 
   const roomId = selectedRoom?.id || "Not selected";
 
+  const agentDiscountPercentage = userType === "agent" ? offers : 0; // Already converted to number
+
   const newPrice =
     selectedOption === 1
       ? selectedRoom?.single_new_price
@@ -81,17 +103,22 @@ const ReviewBooking = () => {
 
   // const discountPrice = newGrandTotal - grandTotal;
   let discountPrice = Math.abs(newGrandTotal - grandTotal);
-  if (newGrandTotal < grandTotal) discountPrice = 0; 
+  if (newGrandTotal < grandTotal) discountPrice = 0;
 
   const discountPercentage = grandTotal && newGrandTotal && newGrandTotal > grandTotal
     ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
     : 0;
 
-  // Calculate GST based on amount
-  const gstRate = grandTotal <= 7500 ? 0.12 : 0.18;
-  const gstAmount = grandTotal * gstRate;
 
-  const finalAmount = grandTotal + gstAmount;
+  const agentDiscountAmount = (grandTotal * agentDiscountPercentage) / 100;
+  const finalTotalAfterAgentDiscount = grandTotal - agentDiscountAmount;
+
+
+  // Calculate GST based on amount
+  const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
+  const gstAmount = finalTotalAfterAgentDiscount * gstRate;
+  const finalAmount = finalTotalAfterAgentDiscount + gstAmount;
+
 
 
 
@@ -280,9 +307,11 @@ const ReviewBooking = () => {
           </div>
           <div className="col-md-4">
             <div className="PriceBox w-100 position-sticky">
+
               <div className="SubPriceBox">
                 <h3 className="text-color">Price Breakup</h3>
                 <hr />
+
                 <div className="roomcaldiv">
                   <div className="leftRoomPrice">
                     <h5>{selectedCottages} Cottage X {totalNights} Nights</h5>
@@ -291,6 +320,7 @@ const ReviewBooking = () => {
                   <div className="rightRoomPrice">₹ {newGrandTotal.toFixed(2)}</div>
                 </div>
 
+                {/* Existing Discount */}
                 <div className="TotalDiscountDiv">
                   <div className="leftTotalDiscount text-color">
                     <h5>
@@ -298,17 +328,30 @@ const ReviewBooking = () => {
                         style={{ cursor: 'pointer' }}></i>
                     </h5>
                   </div>
-                  <div className="rightTotalDiscount text-color">
-                    ₹ {discountPrice.toFixed(2)}
-                  </div>
+                  <div className="rightTotalDiscount text-color">₹ {discountPrice.toFixed(2)}</div>
                 </div>
+
+                {/* Agent Discount (Only for Agents) */}
+                {userType === "agent" && (
+                  <div className="TotalDiscountDiv">
+                    <div className="leftTotalDiscount text-color">
+                      <h5>
+                        Agent Discount <i className="bi bi-info-circle h6" onClick={() => alert(`${agentDiscountPercentage}% Off`)}
+                          style={{ cursor: 'pointer' }}></i>
+                      </h5>
+                    </div>
+                    <div className="rightTotalDiscount text-color">₹ {agentDiscountAmount.toFixed(2)}</div>
+                  </div>
+                )}
+
                 <hr />
                 <div className="PriceafterDiv">
                   <div className="leftPriceafter">
                     <h5>Price after Discount</h5>
                   </div>
-                  <div className="rightPriceafter">₹ {grandTotal.toFixed(2)}</div>
+                  <div className="rightPriceafter">₹ {finalTotalAfterAgentDiscount.toFixed(2)}</div>
                 </div>
+
                 <hr />
                 <div className="taxDiv">
                   <div className="lefttax">
@@ -323,6 +366,7 @@ const ReviewBooking = () => {
                   </div>
                   <div className="righttax">₹ {gstAmount.toFixed(2)}</div>
                 </div>
+
                 <hr />
                 <div className="finalamtDiv">
                   <div className="leftfinalamt text-color">
@@ -330,14 +374,13 @@ const ReviewBooking = () => {
                   </div>
                   <div className="rightfinalamt text-color">₹ {finalAmount.toFixed(2)}</div>
                 </div>
-                <div
-                  className="bookcombtn booknowbtn w-100"
-                  onClick={handlePayAndBook}
-                >
-                  Pay and book{" "}
-                  <i className="bi bi-arrow-right-short h3 m-0"></i>
+
+                <div className="bookcombtn booknowbtn w-100" onClick={handlePayAndBook}>
+                  Pay and book <i className="bi bi-arrow-right-short h3 m-0"></i>
                 </div>
               </div>
+
+
               <div className="qualitydiv mt-3 text-center ">
                 <h6>
                   <i

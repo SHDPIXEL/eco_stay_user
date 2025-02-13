@@ -6,7 +6,7 @@ import Button from 'react-bootstrap/Button';
 import googliconimg from "../assets/images/Googleicon.png";
 import agenticon from "../assets/images/agenticon.png";
 import VerifyLoginModal from "./VerifyLoginModal";
-import { Link } from "react-router-dom";
+import { Link, useAsyncError } from "react-router-dom";
 import { auth, googleProvider, signInWithPopup } from "../firebaseConfig";
 import { AuthContext } from "../context/AuthContext";
 
@@ -21,6 +21,7 @@ const LoginModal = (props) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [showPhoneNumberModal, setShowPhoneNumberModal] = useState(false);
     const [googleUserData, setGoogleUserData] = useState(null);
+    const [mobileNumberGoogle, setMobileNumberGoogle] = useState("");
 
 
     const { login } = useContext(AuthContext);
@@ -39,36 +40,71 @@ const LoginModal = (props) => {
         setLoginModalshow(false);
     }
 
+    // const handleGoogleLogin = async () => {
+    //     try {
+    //         const result = await signInWithPopup(auth, googleProvider);
+    //         const user = result.user;
+
+    //         // Extract user details
+    //         const userData = {
+    //             name: user.displayName,
+    //             email: user.email,
+    //             idProof: user.uid,
+    //             phone: "", 
+    //         };
+
+    //         setGoogleUserData(userData);
+    //         setShowPhoneNumberModal(true); 
+    //     } catch (error) {
+    //         console.error("Google login error:", error);
+    //         setErrorMessage("Failed to log in with Google. Please try again.");
+    //     }
+    // };
+
+
     const handleGoogleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
-
+    
             // Extract user details
             const userData = {
                 name: user.displayName,
                 email: user.email,
                 idProof: user.uid,
-                phone: "", 
             };
-
-            setGoogleUserData(userData);
-            setShowPhoneNumberModal(true); 
+            const response = await API.post("/users/user/byEmail", { email: user.email });
+    
+            if (response.status === 200 && response.data.user) {
+                const existingUser = response.data.user;
+    
+                if (existingUser.phone) {
+                    login(response.data.token, "user");
+                    setIsLoggedIn(true);
+                    setLoginModalshow(false);
+                } else {
+                    setGoogleUserData(userData);
+                    setShowPhoneNumberModal(true);
+                }
+            }
         } catch (error) {
             console.error("Google login error:", error);
             setErrorMessage("Failed to log in with Google. Please try again.");
         }
     };
+    
 
     const handlePhoneNumberSubmit = async () => {
-        if (!mobileNumber) {
+        if (!mobileNumberGoogle) {
             setErrorMessage("Please enter a valid phone number.");
             return;
         }
 
         try {
-            const userDataWithPhone = { ...googleUserData, phone: mobileNumber };
+            const userDataWithPhone = { ...googleUserData, phone: mobileNumberGoogle };
+            console.log("hitting the google-loing api")
             const response = await API.post("/auth/user/user/google-login", userDataWithPhone);
+            console.log("after hitting the google-login api")
 
             console.log("google login response", response)
             console.log("gooel login response data", response.data)
@@ -86,9 +122,6 @@ const LoginModal = (props) => {
             setErrorMessage("Failed to update phone number. Please try again.");
         }
     };
-
-
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -195,8 +228,8 @@ const LoginModal = (props) => {
                                     size="lg"
                                     className="logininput"
                                     placeholder="Enter your mobile number"
-                                    value={mobileNumber}
-                                    onChange={(e) => setMobileNumber(e.target.value)}
+                                    value={mobileNumberGoogle}
+                                    onChange={(e) => setMobileNumberGoogle(e.target.value)}
                                 />
                             </div>
                         </Form.Group>
