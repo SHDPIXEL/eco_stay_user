@@ -73,12 +73,14 @@ const LoginModal = (props) => {
                 email: user.email,
                 idProof: user.uid,
             };
-            const response = await API.post("/users/user/byEmail", { email: user.email });
+            const response = await API.post("/auth/user/byEmail", userData);
+            console.log("response google login", response.data)
+            console.log("modal response", response.data.modal)
     
-            if (response.status === 200 && response.data.user) {
-                const existingUser = response.data.user;
-    
-                if (existingUser.phone) {
+            if (response.status === 200) {
+                const existingUser = response.data.modal;
+
+                if (existingUser === false) {
                     login(response.data.token, "user");
                     setIsLoggedIn(true);
                     setLoginModalshow(false);
