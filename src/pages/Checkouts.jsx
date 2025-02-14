@@ -366,6 +366,11 @@ const Checkouts = () => {
       return;
     }
 
+    if (profileData.phone.length < 10) {
+      alert("Phone number cannot be less than 10 digits.");
+      return;
+    }
+
     if (userType !== "agent") {
       setShowDetails(true);
       return;
