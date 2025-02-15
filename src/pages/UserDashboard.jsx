@@ -556,7 +556,8 @@ const UserDashboard = () => {
                   <td>{payment.transactionId}</td>
                   <td>{payment.orderId}</td>
                   <td>{payment.amount}</td>
-                  <td>{payment.paymentDate}</td>
+                  {/* <td>{payment.paymentDate}</td> */}
+                  <td>{new Date(payment.paymentDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })}</td>
                   <td className={payment.status === "success" ? "status-confirmed" : "status-not-confirmed"}>{payment.status}</td>
                 </tr>
               ))
