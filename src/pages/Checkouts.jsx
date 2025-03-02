@@ -503,6 +503,11 @@ const Checkouts = () => {
             razorpaySignature: response.razorpay_signature,
             booking: booking_id,
             amount,
+            name: profileData.name,
+            phoneNumber: profileData.phone,
+            fatherName: profileData.fatherName,
+            pincode: profileData.pincode,
+            city: profileData.city,
           };
 
           const result = await API.post("auth/user/booking/success", data);
