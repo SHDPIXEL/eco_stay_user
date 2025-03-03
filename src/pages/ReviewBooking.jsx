@@ -82,12 +82,16 @@ const ReviewBooking = () => {
   const newPrice =
     selectedOption === 1
       ? selectedRoom?.single_new_price
-      : selectedRoom?.double_new_price;
+      : selectedOption === 2
+      ? selectedRoom?.double_new_price
+      : selectedRoom?.triple_new_price
 
   const basePrice =
     selectedOption === 1
       ? selectedRoom?.single_base_price
-      : selectedRoom?.double_base_price;
+      : selectedRoom === 2
+      ? selectedRoom?.double_base_price
+      :selectedRoom?.triple_base_price
 
   const packagePrice = selectedPackage?.package_price || 0;
 

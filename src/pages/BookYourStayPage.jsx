@@ -66,6 +66,12 @@ const BookYourStayPage = () => {
       priceKey: "double_base_price",
       cottages: 2,
     },
+    {
+      id: 3,
+      name: "Triple Occupancy",
+      priceKey: "triple_base_price",
+      cottages: 3,
+    },
   ];
 
   const clearSelections = () => {
@@ -189,12 +195,12 @@ const BookYourStayPage = () => {
         navigate("/");
       } else {
         setRoomData(response.data);
+        console.log(response.data)
       }
     } catch (error) {
       console.error("Error fetching room data:", error);
     }
   };
-
 
   const fetchAllPackages = async () => {
     try {
@@ -783,7 +789,7 @@ const BookYourStayPage = () => {
                           {options.map((option) => (
                             <div
                               key={option.id}
-                              className={`d-flex align-items-center px-3 py-2 ${selectedOption === option.id &&
+                              className={`d-flex align-items-center px-5 py-2 ${selectedOption === option.id &&
                                 selectedRoomId === room.id
                                 ? "selected"
                                 : ""
@@ -794,7 +800,9 @@ const BookYourStayPage = () => {
                                   option.id,
                                   option.priceKey === "single_base_price"
                                     ? room.single_base_price
-                                    : room.double_base_price
+                                    : option.priceKey === "double_base_price"
+                                    ? room.double_base_price
+                                    : room.triple_base_price
                                 )
                               }
                               style={{
