@@ -36,6 +36,7 @@ const BookYourStayPage = () => {
   const [animatingCottages, setAnimatingCottages] = useState([]);
   const [isModelOpen, setIsmodelOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: "", description: "" });
+  const [roomType, setRoomType] = useState("");
   const [nonAvailableDates, setNonavailability] = useState();
 
   const [currentIndexes, setCurrentIndexes] = useState({}); // Store indexes for each room
@@ -53,26 +54,6 @@ const BookYourStayPage = () => {
   };
 
   const navigate = useNavigate();
-  const options = [
-    {
-      id: 1,
-      name: "Single Occupancy",
-      priceKey: "single_base_price",
-      cottages: 1,
-    },
-    {
-      id: 2,
-      name: "Double Occupancy",
-      priceKey: "double_base_price",
-      cottages: 2,
-    },
-    {
-      id: 3,
-      name: "Triple Occupancy",
-      priceKey: "triple_base_price",
-      cottages: 3,
-    },
-  ];
 
   const clearSelections = () => {
     setSelectedOption(null);
@@ -195,7 +176,10 @@ const BookYourStayPage = () => {
         navigate("/");
       } else {
         setRoomData(response.data);
-        console.log(response.data)
+        const twinCottage = response.data.find(room => room.room_name === "Twin Cottage");
+        if(twinCottage) {
+          setRoomType(twinCottage.room_name);
+        }
       }
     } catch (error) {
       console.error("Error fetching room data:", error);
@@ -564,332 +548,355 @@ const BookYourStayPage = () => {
           </div>
         </div>
 
-        {filteredRooms.map((room, index) => (
-          <div
-            className="bookstayboxMain"
-            key={index}
-            style={{
-              backgroundColor: index % 2 === 0 ? '#f1f1e7' : '#fff',
-            }}
-          >
-            <div className="row g-0">
-              <div className="col-md-4 border-right">
-                <div className="leftBookstaybox border-0">
+        {filteredRooms.map((room, index) => {
+          const options = [
+            {
+              id: 1,
+              name: room.room_name === "Twin Cottage" ? "Double Occupancy" : "Single Occupancy",
+              priceKey: "single_base_price",
+              cottages: 1,
+            },
+            {
+              id: 2,
+              name: room.room_name === "Twin Cottage" ? "Quadruple Occupancy" : "Double Occupancy",
+              priceKey: "double_base_price",
+              cottages: 2,
+            },
+            {
+              id: 3,
+              name: room.room_name === "Twin Cottage" ? "Sextuple Occupancy" : "Triple Occupancy",
+              priceKey: "triple_base_price",
+              cottages: 3,
+            },
+          ];
+          
+          return (
+            <div
+              className="bookstayboxMain"
+              key={index}
+              style={{
+                backgroundColor: index % 2 === 0 ? '#f1f1e7' : '#fff',
+              }}
+            >
+              <div className="row g-0">
+                <div className="col-md-4 border-right">
+                  <div className="leftBookstaybox border-0">
 
-                  <div key={index} className="slider-container">
-                    {/* Default index to 0 if not set */}
-                    {JSON.parse(room.room_images).length > 0 && (
-                      <>
-                        <button
-                          className="prev"
-                          onClick={() =>
-                            setCurrentIndexes((prev) => ({
-                              ...prev,
-                              [index]: prev[index] === 0
-                                ? JSON.parse(room.room_images).length - 1
-                                : prev[index] - 1,
-                            }))
-                          }
-                        >
-                          &#10094;
-                        </button>
+                    <div key={index} className="slider-container">
+                      {/* Default index to 0 if not set */}
+                      {JSON.parse(room.room_images).length > 0 && (
+                        <>
+                          <button
+                            className="prev"
+                            onClick={() =>
+                              setCurrentIndexes((prev) => ({
+                                ...prev,
+                                [index]: prev[index] === 0
+                                  ? JSON.parse(room.room_images).length - 1
+                                  : prev[index] - 1,
+                              }))
+                            }
+                          >
+                            &#10094;
+                          </button>
 
-                        <img
-                          src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndexes[index] || 0]}`}
-                          alt="Room"
-                          className="slider-image rounded-img"
-                        />
+                          <img
+                            src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndexes[index] || 0]}`}
+                            alt="Room"
+                            className="slider-image rounded-img"
+                          />
 
-                        <button
-                          className="next"
-                          onClick={() =>
-                            setCurrentIndexes((prev) => ({
-                              ...prev,
-                              [index]: prev[index] === JSON.parse(room.room_images).length - 1
-                                ? 0
-                                : (prev[index] || 0) + 1,
-                            }))
-                          }
-                        >
-                          &#10095;
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  <h4 className="model-title">{room.room_name}</h4>
-
-                  <ul>
-                    {JSON.parse(room.amenities).map((a, idx) => (
-                      <li key={idx}>{a}</li>
-                    ))}
-                  </ul>
-
-                  <div
-                    onClick={() => handleModelOpen(room.room_name, room.description)}
-                    className="viewallbtn"
-                  >
-                    View all Room Amenities</div>
-                </div>
-              </div>
-
-              {isModelOpen && (
-                <div className="modal-overlay">
-                  <div className="modal-content">
-                    <button className="close-btn" onClick={handleCloseModal}>
-                      &times;
-                    </button>
-                    <h3 className="model-title">{modalContent.title}</h3>
-                    <p>{modalContent.description}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="col-md-8">
-                <div className="rightBookstaybox ">
-                  <div className="firstrightBook">
-                    <div className="mb-2">
-                      <span className="numberselect">
-                        1. Number of cottage(s) Available
-                      </span>{" "}
-                      <span className="tickbg">
-                        Available: <em>{JSON.parse(room.status).available}</em>
-                      </span>
-                      <span className="tickbg">
-                        Booked: <em>{JSON.parse(room.status).booked}</em>
-                      </span>
+                          <button
+                            className="next"
+                            onClick={() =>
+                              setCurrentIndexes((prev) => ({
+                                ...prev,
+                                [index]: prev[index] === JSON.parse(room.room_images).length - 1
+                                  ? 0
+                                  : (prev[index] || 0) + 1,
+                              }))
+                            }
+                          >
+                            &#10095;
+                          </button>
+                        </>
+                      )}
                     </div>
 
-                    <p className="text-muted"></p>
-                    <div className="availablebox">
-                      <div className="autoscroll">
-                        <div className="availablebox">
-                          <div className="autoscroll">
-                            {Array.from({
-                              length: JSON.parse(room.status).available,
-                            }).map((_, index) => (
-                              <div
-                                className={`bookdiv available ${index < selectedCottages && selectedRoomId === room.id ? 'selected_cottage' : ''
-                                  } ${animatingCottages.includes(index) ? 'animate-select' : ''}`}
-                                onClick={() => handleCottageChange(room.id, index)}
-                                key={`available-${index}`}
-                                style={{
-                                  transition: 'all 0.3s ease',
-                                  transform: animatingCottages.includes(index) ? 'scale(.9)' : 'scale(1)',
-                                  backgroundColor: index < selectedCottages && selectedRoomId === room.id ? '#f7f7ca29' : '',
-                                }}
-                              >
-                                <img src={available} alt="Available" />
-                                <p>Available</p>
-                              </div>
-                            ))}
+                    <h4 className="model-title">{room.room_name}</h4>
 
-                            {Array.from({
-                              length: JSON.parse(room.status).booked,
-                            }).map((_, index) => (
-                              <div className="bookdiv" key={`booked-${index}`}>
-                                <img src={Groupimg} alt="Booked" />
-                                <p>Booked</p>
-                              </div>
-                            ))}
+                    <ul>
+                      {JSON.parse(room.amenities).map((a, idx) => (
+                        <li key={idx}>{a}</li>
+                      ))}
+                    </ul>
+
+                    <div
+                      onClick={() => handleModelOpen(room.room_name, room.description)}
+                      className="viewallbtn"
+                    >
+                      View all Room Amenities</div>
+                  </div>
+                </div>
+
+                {isModelOpen && (
+                  <div className="modal-overlay">
+                    <div className="modal-content">
+                      <button className="close-btn" onClick={handleCloseModal}>
+                        &times;
+                      </button>
+                      <h3 className="model-title">{modalContent.title}</h3>
+                      <p>{modalContent.description}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="col-md-8">
+                  <div className="rightBookstaybox ">
+                    <div className="firstrightBook">
+                      <div className="mb-2">
+                        <span className="numberselect">
+                          1. Number of cottage(s) Available
+                        </span>{" "}
+                        <span className="tickbg">
+                          Available: <em>{JSON.parse(room.status).available}</em>
+                        </span>
+                        <span className="tickbg">
+                          Booked: <em>{JSON.parse(room.status).booked}</em>
+                        </span>
+                      </div>
+
+                      <p className="text-muted"></p>
+                      <div className="availablebox">
+                        <div className="autoscroll">
+                          <div className="availablebox">
+                            <div className="autoscroll">
+                              {Array.from({
+                                length: JSON.parse(room.status).available,
+                              }).map((_, index) => (
+                                <div
+                                  className={`bookdiv available ${index < selectedCottages && selectedRoomId === room.id ? 'selected_cottage' : ''
+                                    } ${animatingCottages.includes(index) ? 'animate-select' : ''}`}
+                                  onClick={() => handleCottageChange(room.id, index)}
+                                  key={`available-${index}`}
+                                  style={{
+                                    transition: 'all 0.3s ease',
+                                    transform: animatingCottages.includes(index) ? 'scale(.9)' : 'scale(1)',
+                                    backgroundColor: index < selectedCottages && selectedRoomId === room.id ? '#f7f7ca29' : '',
+                                  }}
+                                >
+                                  <img src={available} alt="Available" />
+                                  <p>Available</p>
+                                </div>
+                              ))}
+
+                              {Array.from({
+                                length: JSON.parse(room.status).booked,
+                              }).map((_, index) => (
+                                <div className="bookdiv" key={`booked-${index}`}>
+                                  <img src={Groupimg} alt="Booked" />
+                                  <p>Booked</p>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="SecoundrightBook">
-                    <div className="mb-2">
-                      <span className="numberselect">
-                        2. Select any type of package
-                      </span>
-                    </div>
-                    {validationErrors.selectedPackage && activeRoomId === room.id && (
-                      <p className="text-danger">
-                        {validationErrors.selectedPackage}
-                      </p>
-                    )}
-                    <p className="text-muted">Click on "Package" to select</p>
-                    <div className="packagebox">
-                      <div className="autoscroll">
-                        {room.packages.map((pkg, i) => (
-                          <div
-                            key={pkg.id}
-                            className={`packageboxdiv ${selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                              ? "selected"
-                              : ""
-                              }`}
-                            onClick={() => handlePackageSelect(room.id, pkg)}
-                            style={{
-                              cursor: "pointer",
-                              backgroundColor:
-                                selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                                  ? "rgba(235, 214, 193, 0.34)"
-                                  : "#fff",
-                              border:
-                                selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                                  ? "2px solid #806a50"
-                                  : "1px solid #ccc",
-                              padding: "10px",
-                              borderRadius: "8px",
-                              marginBottom: "10px",
-                            }}
-                          >
-                            <h5>
-                              Package {i + 1}: {pkg.name}
-                            </h5>
-                            <ul>
-                              {pkg.long_description &&
-                                pkg.long_description.split(",").map((b, index) => (
-                                  <li key={index}>{b.trim()}</li>
-                                ))}
-                            </ul>
-                            <h6
-                              style={{
-                                color:
-                                  selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                                    ? "#806a50"
-                                    : "#000",
-                                cursor: "pointer",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevents the parent div's onClick from firing
-                                handleModelOpen(pkg.name, pkg.long_description);
-                              }}
-                            >
-                              {selectedPackage?.id === pkg.id && selectedRoomId === room.id
-                                ? "Selected"
-                                : "View More Details"}
-                            </h6>
-                          </div>
-                        ))}
+                    <div className="SecoundrightBook">
+                      <div className="mb-2">
+                        <span className="numberselect">
+                          2. Select any type of package
+                        </span>
                       </div>
-                    </div>
-                  </div>
-                  <div className="thirdrightBook">
-                    <div className="mb-2">
-                      <span className="numberselect">
-                        3. Select type of occupancy
-                      </span>
-                    </div>
-                    {validationErrors.selectedOption && activeRoomId === room.id && (
-                      <p className="text-danger">
-                        {validationErrors.selectedOption}
-                      </p>
-                    )}
-                    <p className="text-muted">
-                      The {room.room_name} Cost for Single Occupancy ₹{" "}
-                      {room.single_base_price} and for Double Occupancy ₹{" "}
-                      {room.double_base_price} . Kids upto 6 years complimentary
-                      sharing bed with parents. 6 Years and Above: INR 2000+18%
-                      GST.
-                    </p>
-                    <div className="row">
-                      <div className="col-md-4 mb-1">
-                        <div className="d-flex justify-content-start align-items-center gap-3">
-                          {options.map((option) => (
+                      {validationErrors.selectedPackage && activeRoomId === room.id && (
+                        <p className="text-danger">
+                          {validationErrors.selectedPackage}
+                        </p>
+                      )}
+                      <p className="text-muted">Click on "Package" to select</p>
+                      <div className="packagebox">
+                        <div className="autoscroll">
+                          {room.packages.map((pkg, i) => (
                             <div
-                              key={option.id}
-                              className={`d-flex align-items-center px-5 py-2 ${selectedOption === option.id &&
-                                selectedRoomId === room.id
+                              key={pkg.id}
+                              className={`packageboxdiv ${selectedPackage?.id === pkg.id && selectedRoomId === room.id
                                 ? "selected"
                                 : ""
                                 }`}
-                              onClick={() =>
-                                handleSelect(
-                                  room.id,
-                                  option.id,
-                                  option.priceKey === "single_base_price"
-                                    ? room.single_base_price
-                                    : option.priceKey === "double_base_price"
-                                    ? room.double_base_price
-                                    : room.triple_base_price
-                                )
-                              }
+                              onClick={() => handlePackageSelect(room.id, pkg)}
                               style={{
                                 cursor: "pointer",
                                 backgroundColor:
-                                  selectedOption === option.id &&
-                                    selectedRoomId === room.id
+                                  selectedPackage?.id === pkg.id && selectedRoomId === room.id
                                     ? "rgba(235, 214, 193, 0.34)"
                                     : "#fff",
                                 border:
-                                  selectedOption === option.id &&
-                                    selectedRoomId === room.id
+                                  selectedPackage?.id === pkg.id && selectedRoomId === room.id
                                     ? "2px solid #806a50"
                                     : "1px solid #ccc",
+                                padding: "10px",
                                 borderRadius: "8px",
-                                marginBottom: "0",
-                                color:
-                                  selectedOption === option.id &&
-                                    selectedRoomId === room.id
-                                    ? "#806a50"
-                                    : "#000000",
+                                marginBottom: "10px",
                               }}
                             >
-                              <img
-                                src={Adultimg}
-                                alt=""
+                              <h5>
+                                Package {i + 1}: {pkg.name}
+                              </h5>
+                              <ul>
+                                {pkg.long_description &&
+                                  pkg.long_description.split(",").map((b, index) => (
+                                    <li key={index}>{b.trim()}</li>
+                                  ))}
+                              </ul>
+                              <h6
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
-                                  marginRight: "8px",
                                   color:
-                                    selectedOption === option.id &&
-                                      selectedRoomId === room.id
-                                      ? "#000000"
-                                      : "#ffffff",
+                                    selectedPackage?.id === pkg.id && selectedRoomId === room.id
+                                      ? "#806a50"
+                                      : "#000",
+                                  cursor: "pointer",
                                 }}
-                              />
-                              <span>{option.name}</span>
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevents the parent div's onClick from firing
+                                  handleModelOpen(pkg.name, pkg.long_description);
+                                }}
+                              >
+                                {selectedPackage?.id === pkg.id && selectedRoomId === room.id
+                                  ? "Selected"
+                                  : "View More Details"}
+                              </h6>
                             </div>
                           ))}
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="FourthdrightBook border-0">
-                    <div className="row">
-                      <div className="col-md-6">
-                        <div className="mb-2">
-                          <span className="numberselect">
-                            4. Your booking price estimate is:{" "}
-                            <span className="text-color">
-                              ₹ {selectedRoomId === room.id ? totalPrice : 0}
-                            </span>
-                          </span>
-                        </div>
-                        <p className="text-muted">
-                          Check In Time is 1300 hrs and Check Out Time is 1100
-                          hrs. Swimming costume is mandatory while using the
-                          pool.
-                        </p>
+                    <div className="thirdrightBook">
+                      <div className="mb-2">
+                        <span className="numberselect">
+                          3. Select type of occupancy
+                        </span>
                       </div>
-                      <div className="col-md-6">
-                        <button
-                          className="bookcombtn booknowbtn w-100"
-                          onClick={() => handleBookStay(room.id)}
-                        >
-                          <span>Looks good, book stay </span>
-                          <i className="bi bi-arrow-right ms-2 "></i>
-                        </button>
-                        {validationErrors.checkOutDate && activeRoomId === room.id && (
-                          <p className="text-danger text-center mt-2">
-                            {validationErrors.checkOutDate}
+                      {validationErrors.selectedOption && activeRoomId === room.id && (
+                        <p className="text-danger">
+                          {validationErrors.selectedOption}
+                        </p>
+                      )}
+                      <p className="text-muted">
+                        The {room.room_name} Cost for Single Occupancy ₹{" "}
+                        {room.single_base_price} and for Double Occupancy ₹{" "}
+                        {room.double_base_price} . Kids upto 6 years complimentary
+                        sharing bed with parents. 6 Years and Above: INR 2000+18%
+                        GST.
+                      </p>
+                      <div className="row">
+                        <div className="col-md-4 mb-1">
+                          <div className="d-flex justify-content-start align-items-center gap-3">
+                            {options.map((option) => (
+                              <div
+                                key={option.id}
+                                className={`roomType-container d-flex align-items-center justify-center py-2 px-2 ${selectedOption === option.id &&
+                                  selectedRoomId === room.id
+                                  ? "selected"
+                                  : ""
+                                  }`}
+                                onClick={() =>
+                                  handleSelect(
+                                    room.id,
+                                    option.id,
+                                    option.priceKey === "single_base_price"
+                                      ? room.single_base_price
+                                      : option.priceKey === "double_base_price"
+                                      ? room.double_base_price
+                                      : room.triple_base_price
+                                  )
+                                }
+                                style={{
+                                  cursor: "pointer",
+                                  backgroundColor:
+                                    selectedOption === option.id &&
+                                      selectedRoomId === room.id
+                                      ? "rgba(235, 214, 193, 0.34)"
+                                      : "#fff",
+                                  border:
+                                    selectedOption === option.id &&
+                                      selectedRoomId === room.id
+                                      ? "2px solid #806a50"
+                                      : "1px solid #ccc",
+                                  borderRadius: "8px",
+                                  marginBottom: "0",
+                                  color:
+                                    selectedOption === option.id &&
+                                      selectedRoomId === room.id
+                                      ? "#806a50"
+                                      : "#000000",
+                                }}
+                              >
+                                <img
+                                  src={Adultimg}
+                                  alt=""
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    marginRight: "8px",
+                                    color:
+                                      selectedOption === option.id &&
+                                        selectedRoomId === room.id
+                                        ? "#000000"
+                                        : "#ffffff",
+                                  }}
+                                />
+                                <span>{option.name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="FourthdrightBook border-0">
+                      <div className="row">
+                        <div className="col-md-6">
+                          <div className="mb-2">
+                            <span className="numberselect">
+                              4. Your booking price estimate is:{" "}
+                              <span className="text-color">
+                                ₹ {selectedRoomId === room.id ? totalPrice : 0}
+                              </span>
+                            </span>
+                          </div>
+                          <p className="text-muted">
+                            Check In Time is 1300 hrs and Check Out Time is 1100
+                            hrs. Swimming costume is mandatory while using the
+                            pool.
                           </p>
-                        )}
-                        {validationErrors.checkInDate && activeRoomId === room.id && (
-                          <p className="text-danger" style={{
-                            textAlign: "center"
-                          }}>{validationErrors.checkInDate}</p>
-                        )}
+                        </div>
+                        <div className="col-md-6">
+                          <button
+                            className="bookcombtn booknowbtn w-100"
+                            onClick={() => handleBookStay(room.id)}
+                          >
+                            <span>Looks good, book stay </span>
+                            <i className="bi bi-arrow-right ms-2 "></i>
+                          </button>
+                          {validationErrors.checkOutDate && activeRoomId === room.id && (
+                            <p className="text-danger text-center mt-2">
+                              {validationErrors.checkOutDate}
+                            </p>
+                          )}
+                          {validationErrors.checkInDate && activeRoomId === room.id && (
+                            <p className="text-danger" style={{
+                              textAlign: "center"
+                            }}>{validationErrors.checkInDate}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <ReviewSlider />
       </div>
       <ContactSection />
