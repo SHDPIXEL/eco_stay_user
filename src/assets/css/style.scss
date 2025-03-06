@@ -133,7 +133,7 @@ a {
 
 .logout-btn-container {
     display: flex;
-    justify-content:space-between;
+    justify-content: space-between;
     align-items: center;
     /* Aligns the button to the right */
     width: 100%;
@@ -141,8 +141,8 @@ a {
     padding-right: 17px;
 }
 
-.agent-title{
-    font-size:xx-large;
+.agent-title {
+    font-size: xx-large;
     color: #84A91F;
 }
 
@@ -166,7 +166,7 @@ a {
     transition: 0.3s ease-in-out;
 }
 
-.rounded-img{
+.rounded-img {
     border-radius: 30px;
 }
 
@@ -297,6 +297,7 @@ svg.banner-overlay {
     background: #F1F1E7;
     padding: 30px 20px;
     transition: all 0.3s;
+    min-height: 390px;
 }
 
 .whychoosusbox:hover {
@@ -321,6 +322,29 @@ svg.banner-overlay {
     font-size: 1rem;
     font-weight: 300;
     margin-bottom: 0px;
+}
+
+
+.tagline-main {
+    color: green;
+    font-size:x-small;
+    margin-bottom: 0;
+    margin-top: 10px;
+    font-weight:500;
+}
+
+.tagline-sub {
+    color: #806A50;
+    font-size: large;
+    font-family: cursive;
+    margin-top: 0;
+}
+
+.tagline-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
 }
 
 .topluxury h5 {
@@ -394,6 +418,10 @@ svg.luximgoverlay {
     top: auto;
     bottom: 20px;
     right: 20px;
+}
+
+.roomType-container{
+    min-width: 200px !important;
 }
 
 .bookcomfortbox {
@@ -1183,12 +1211,12 @@ input::-webkit-inner-spin-button {
     background: linear-gradient(180deg, rgba(217, 217, 217, 0.00) 0%, rgba(43, 43, 43, 0.30) 43.01%, #000 100%);
 }
 
-.amenities{
+.amenities {
     display: flex;
     gap: 5px;
 }
 
-.amenities-tags{
+.amenities-tags {
     background-color: white;
     color: black;
     padding: 0px 10px;
@@ -1378,16 +1406,17 @@ input::-webkit-inner-spin-button {
     overflow: hidden;
     margin: auto;
     text-align: center;
-  }
-  
-  .slider-image {
+}
+
+.slider-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-  }
-  
-  .prev, .next {
+}
+
+.prev,
+.next {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -1397,23 +1426,29 @@ input::-webkit-inner-spin-button {
     padding: 10px;
     cursor: pointer;
     font-size: 18px;
-  }
+}
 
-  .status-confirmed {
+.status-confirmed {
     color: green !important;
-  }
-  
-  .status-not-confirmed {
+}
+
+.status-not-confirmed {
     color: red !important;
-  }
-  
-  .prev { left: 10px; }
-  .next { right: 10px; }
-  
-  .prev:hover, .next:hover {
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+.prev:hover,
+.next:hover {
     background-color: rgba(0, 0, 0, 0.8);
-  }
-  
+}
+
 
 .bookstay {
     border-radius: 32px;
@@ -1514,9 +1549,9 @@ input::-webkit-inner-spin-button {
 
 .roomtype-container {
     display: flex;
-    align-items: center; 
-    gap: 15px; 
-  }
+    align-items: center;
+    gap: 15px;
+}
 
 .roomtype-header {
     font-weight: 600;
@@ -1784,10 +1819,14 @@ input::-webkit-inner-spin-button {
     max-width: 320px !important;
     display: inline-block;
     margin-right: 15px;
-    word-break: break-word; /* Allows breaking long words onto the next line */
-    overflow-wrap: break-word; /* Ensures long words wrap to the next line */
-    overflow: hidden; /* Hides overflowing content */
-    white-space: normal; /* Allows normal text wrapping */
+    word-break: break-word;
+    /* Allows breaking long words onto the next line */
+    overflow-wrap: break-word;
+    /* Ensures long words wrap to the next line */
+    overflow: hidden;
+    /* Hides overflowing content */
+    white-space: normal;
+    /* Allows normal text wrapping */
 }
 
 
@@ -2357,7 +2396,7 @@ hr {
     border-radius: 10px !important;
 }
 
-.model-title{
+.model-title {
     color: #806A50 !important;
 }
 
@@ -2377,60 +2416,60 @@ hr {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-  }
-  
-  /* Container Styling */
-  .login-container {
+}
+
+/* Container Styling */
+.login-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     background-color: #f8f9fa;
     font-family: "Poppins", Arial, sans-serif;
-  }
-  
-  /* Login Box Styling */
-  .login-box {
+}
+
+/* Login Box Styling */
+.login-box {
     width: 100%;
     max-width: 400px;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    
-  }
-  
-  /* Header */
-  .login-header {
+
+}
+
+/* Header */
+.login-header {
     text-align: center;
     margin-bottom: 20px;
     font-weight: bold;
-  }
-  
-  .login-header h1 {
+}
+
+.login-header h1 {
     font-size: 1.8rem;
     color: #333;
     margin-bottom: 5px;
-  }
-  
-  .login-header p {
+}
+
+.login-header p {
     font-size: 0.9rem;
     color: #666;
-  }
-  
-  /* Form Group */
-  .form-group {
+}
+
+/* Form Group */
+.form-group {
     margin-bottom: 15px;
-  }
-  
-  .form-group label {
+}
+
+.form-group label {
     display: block;
     font-size: 0.9rem;
     color: #555;
     margin-bottom: 5px;
-  }
-  
-  .form-group input {
+}
+
+.form-group input {
     width: 100%;
     padding: 10px;
     font-size: 1rem;
@@ -2438,18 +2477,18 @@ hr {
     border-radius: 4px;
     outline: none;
     transition: border-color 0.3s ease;
-  }
-  
-  .form-group input:focus {
+}
+
+.form-group input:focus {
     border-color: #333;
-  }
-  
-  /* Password Wrapper */
-  .password-wrapper {
+}
+
+/* Password Wrapper */
+.password-wrapper {
     position: relative;
-  }
-  
-  .password-wrapper .password-toggle {
+}
+
+.password-wrapper .password-toggle {
     position: absolute;
     top: 50%;
     right: 10px;
@@ -2457,10 +2496,10 @@ hr {
     font-size: 1.2rem;
     cursor: pointer;
     color: #666;
-  }
-  
-  /* Button */
-  .login-button {
+}
+
+/* Button */
+.login-button {
     width: 100%;
     padding: 10px;
     background-color: #806A50;
@@ -2471,24 +2510,25 @@ hr {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-  }
-  
-  .login-button:hover {
+}
+
+.login-button:hover {
     background-color: #555;
-  }
-  
+}
+
 
 //Responsive
 
 @media (max-width: 768px) {
     .room-grid {
-      grid-template-columns: repeat(1, 1fr); /* 1 item per row on phones */
+        grid-template-columns: repeat(1, 1fr);
+        /* 1 item per row on phones */
     }
-  
+
     .roombox {
-      width: 100%;
+        width: 100%;
     }
-  }
+}
 
 @media (max-width: 1200px) {
     .mainmenu .nav-link {
@@ -2651,6 +2691,7 @@ hr {
     .whychoosusbox {
         margin-top: 20px;
         border-radius: 15px;
+        min-height: "200px" !important;
     }
 
     .whychoosusbox h6 {

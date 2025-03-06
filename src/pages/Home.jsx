@@ -26,6 +26,7 @@ import MainFooter from "./MainFooter";
 import { useLocation } from "react-router-dom";
 import API from "../api";
 import { BASE_URL } from "../api";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
     const sectionRef = useRef(null);
@@ -33,6 +34,7 @@ const Home = () => {
     const [isModelOpen, setIsmodelOpen] = useState(false);
     const [modalContent, setModalContent] = useState({ title: "", description: "" });
     const [rooms, setRooms] = useState([]);
+    const navigate = useNavigate();
 
     const handleModelOpen = (title, description) => {
         setModalContent({ title, description });
@@ -157,7 +159,7 @@ const Home = () => {
                             <div className='whychoosusbox'>
                                 <img src={sucssimg} alt='aboutimg' />
                                 <h6>Expertise and Experience</h6>
-                                <p>Our Luxury resort in Moharli Taboba comprises of 9 Mud Block Cottages and 6 Luxurious Tents and a outdoor swimming pool of 800 sqft with</p>
+                                <p>Our Guidance is With Experience. With 1000+ tours and 5000+ safari bookings pan India, we help you with complete package at Vrruksh eco-stay. </p>
                             </div>
 
                         </div>
@@ -165,7 +167,7 @@ const Home = () => {
                             <div className='whychoosusbox'>
                                 <img src={houseimg} alt='aboutimg' />
                                 <h6>Quality <br />Craftsmanship</h6>
-                                <p>Our Luxury resort in Moharli Taboba comprises of 9 Mud Block Cottages and 6 Luxurious Tents and a outdoor swimming pool of 800 sqft with</p>
+                                <p>This resort is created and built under the guidance of one the founder firm that specializes in stabilized soil blocks which has been advocating for the use of mud in construction for decades.</p>
                             </div>
 
                         </div>
@@ -174,7 +176,7 @@ const Home = () => {
                                 <img src={safarimg} alt='aboutimg' />
                                 <h6>Surrounded by
                                     Adventure Safaris</h6>
-                                <p>Our Luxury resort in Moharli Taboba comprises of 9 Mud Block Cottages and 6 Luxurious Tents and a outdoor swimming pool of 800 sqft with</p>
+                                <p>5 safari gates do fall under 5-10 kilometres Vicinity of our resort, making it the most convenient jungle safari trip.</p>
                             </div>
 
                         </div>
@@ -182,7 +184,7 @@ const Home = () => {
                             <div className='whychoosusbox'>
                                 <img src={bestchoiceimg} alt='aboutimg' />
                                 <h6>Customer-Centric Approach</h6>
-                                <p>Our Luxury resort in Moharli Taboba comprises of 9 Mud Block Cottages and 6 Luxurious Tents and a outdoor swimming pool of 800 sqft with</p>
+                                <p>We offer many additional services awaiting your attention which can be opted as per the choice at the resort to make your holiday memorable.</p>
                             </div>
 
                         </div>
@@ -197,14 +199,14 @@ const Home = () => {
                         <h4>Luxury Stays- Comfort Clubbed with Wilderness</h4>
                         <p>Earthy lodges, untainted excursions, awe-inspiring encounters with the wilderness – Vrruksh Eco Stay serve as the epitome of peaceful sojourn in the lap of nature while enveloping you with contemporary conveniences.</p>
                     </div>
-                    <div className="row ">
+                    <div className="row">
 
                         {
                             rooms.slice(0, 3).map((room) => (
                                 <div className="col-lg-4 mt-4 mb-lg-0">
                                     <div className="luximgbox position-relative rounded-img">
                                         {
-                                            JSON.parse(room.room_images).slice(0,1).map((image) => (
+                                            JSON.parse(room.room_images).slice(0, 1).map((image) => (
                                                 <img src={`${BASE_URL}/assets/images/${image}`} alt="luximg" width={"100%"} />
                                             ))
                                         }
@@ -232,10 +234,11 @@ const Home = () => {
                                             </p>
                                         </div>
                                         <div
-                                            onClick={() => handleModelOpen(
-                                                room.room_name,
-                                                room.description
-                                            )}
+                                            // onClick={() => handleModelOpen(
+                                            //     room.room_name,
+                                            //     room.description
+                                            // )}
+                                            onClick={() => navigate("/book-your-stay")}
                                             className='arrowbtn luxarrybtn'>
                                             <img src={arrowlink} alt='arrowlink' />
                                         </div>
@@ -271,13 +274,13 @@ const Home = () => {
                     <div className="row mt-4 ">
 
                         {
-                            rooms.slice(0,3).map((room) => (
+                            rooms.slice(0, 3).map((room) => (
                                 <div className="col-lg-4  mt-4 ">
                                     <div className="bookcomfortbox">
                                         <div className='topbook'>{room.type}</div>
                                         <h4>{room.room_name}</h4>
                                         {
-                                            JSON.parse(room.room_images).slice(0,1).map((image) => (
+                                            JSON.parse(room.room_images).slice(0, 1).map((image) => (
                                                 <img src={`${BASE_URL}/assets/images/${image}`} alt='bokok' />
                                             ))
                                         }
@@ -291,7 +294,7 @@ const Home = () => {
                                             }
                                             <li><span>..and nature</span></li>
                                         </ul>
-                                        <div className='bookcombtn' onClick={() => setLoginModalshow(true)}><img src={Houseicon} alt='' width={20} className='me-2' />Book your stay</div>
+                                        <div className='bookcombtn' onClick={() => navigate("/book-your-stay")}><img src={Houseicon} alt='' width={20} className='me-2' />Book your stay</div>
                                     </div>
                                 </div>
                             ))
@@ -354,7 +357,9 @@ const Home = () => {
                             <div className="luximgbox position-relative">
                                 <img src={facilityimg3} alt="facilityimg3" width={"100%"} />
 
-                                <div className='arrowbtn luxarrybtn'>
+                                <div
+                                    onClick={() => navigate("/book-your-stay")}
+                                    className='arrowbtn luxarrybtn'>
                                     <img src={arrowlink} alt='arrowlink' />
                                 </div>
                             </div>
@@ -368,7 +373,9 @@ const Home = () => {
                             <div className="luximgbox position-relative">
                                 <img src={facilityimg2} alt="facilityimg3" width={"100%"} />
 
-                                <div className='arrowbtn luxarrybtn'>
+                                <div
+                                    onClick={() => navigate("/book-your-stay")}
+                                    className='arrowbtn luxarrybtn'>
                                     <img src={arrowlink} alt='arrowlink' />
                                 </div>
                             </div>
@@ -382,7 +389,9 @@ const Home = () => {
                             <div className="luximgbox position-relative">
                                 <img src={facilityimg1} alt="facilityimg3" width={"100%"} />
 
-                                <div className='arrowbtn luxarrybtn'>
+                                <div
+                                    onClick={() => navigate("/book-your-stay")}
+                                    className='arrowbtn luxarrybtn'>
                                     <img src={arrowlink} alt='arrowlink' />
                                 </div>
                             </div>
@@ -405,13 +414,10 @@ const Home = () => {
                     </div>
                     <div className="row mt-5 justigy-content-center">
 
-                        <div className="col-lg-8 mb-4 ">
+                        <div className="col-lg-8 mb-4">
                             <div className="luximgbox">
-                                <img src={mapimg} alt="mapimg" width={"100%"} />
-
-
+                            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3744.3748229058547!2d79.3254764!3d20.201739699999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bd333f34a4f44b3%3A0xe633a784e225eddc!2sVrruksh%20Eco-Stay!5e0!3m2!1sen!2sin!4v1741007385207!5m2!1sen!2sin" width="800" height="600" style={{border:0}} allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                             </div>
-
                         </div>
 
                         <div className="col-lg-4 col-md-4 ">
