@@ -402,6 +402,7 @@ svg.luximgoverlay {
 
 .luximgbox {
     overflow: hidden;
+    border-radius: 32px;
 }
 
 .luximgbox:hover .luxboxcontent {
@@ -663,6 +664,11 @@ svg.luximgoverlay {
     font-size: 1rem;
     font-weight: 300;
     margin-bottom: 0;
+}
+
+.map-style {
+    border-radius: 32px !important;
+    min-height: 250px;
 }
 
 .starbox {
