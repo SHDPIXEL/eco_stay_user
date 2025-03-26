@@ -46,6 +46,7 @@ const Checkouts = () => {
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const navigate = useNavigate();
+  const authToken = localStorage.getItem("authToken");
 
   function loadScript(src) {
     return new Promise((resolve) => {
@@ -160,24 +161,32 @@ const Checkouts = () => {
     return () => clearInterval(interval);
   }, [showVerify, timer]);
 
+
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await API.post("/auth/user/user-data"); // Fetch based on u_id
         setProfileData(response.data);
-        // console.log("profile data", response.data)
+        console.log("before response");
+        console.log("profile data", response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
     };
 
     const userType = localStorage.getItem("type");
-    if (isAuthenticated && !isTokenExpired()) {
-      if (userType === "user") {
+    const token = localStorage.getItem("authToken");
+
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("Token expired:", isTokenExpired());
+    console.log("User Type:", userType);
+
+    if (isAuthenticated && !isTokenExpired() && token) {
+      if (userType !== "agent" || userType === undefined) {
         fetchUserData();
       } else if (userType === "agent") {
         setProfileData({
-          // u_id: "",
           name: "",
           email: "",
           phone: "",
@@ -189,7 +198,8 @@ const Checkouts = () => {
         });
       }
     }
-  }, [isAuthenticated, isTokenExpired]);
+  }, [isAuthenticated, authToken]);
+
 
 
   const formatTime = (seconds) => {
@@ -235,14 +245,14 @@ const Checkouts = () => {
     checkOutDate,
     selectedRoom,
     selectedOption,
-    selectedPackage,
+    // selectedPackage,
     selectedCottages,
     roomName,
     roomId,
     occupancyType,
-    packageName,
+    // packageName,
     basePrice,
-    packagePrice,
+    // packagePrice,
     totalNights,
     pricePerNight,
     grandTotal,
@@ -340,7 +350,7 @@ const Checkouts = () => {
       );
       if (response.status === 200 || response.status === 201) {
         setShowVerify(false);
-        const token = response.data.token; 
+        const token = response.data.token;
         login(token);
         setProfileData(response.data.user);
         console.log("use data on login", response.data)
@@ -438,16 +448,16 @@ const Checkouts = () => {
     const bookingPayload =
       userType === "agent" ?
         {
-          amt: finalAmount.toFixed(2),
+          amt: parseInt(finalAmount),
           currency: "INR",
           checkInDate,
           checkOutDate,
           roomType: roomName + '_' + roomId,
           number_of_cottages: selectedCottages,
-          selected_packages: selectedPackage.name,
+          // selected_packages: selectedPackage.name,
           selected_occupancy: occupancyType,
           base_price: basePrice,
-          package_price: packagePrice,
+          // package_price: packagePrice,
           total_nights: totalNights,
           price_per_night: pricePerNight,
           grand_total: grandTotal,
@@ -461,16 +471,16 @@ const Checkouts = () => {
           country: profileData.country,
           pincode: profileData.pincode,
         } : {
-          amt: finalAmount.toFixed(2),
+          amt: parseInt(finalAmount),
           currency: "INR",
           checkInDate,
           checkOutDate,
           roomType: roomName + '_' + roomId,
           number_of_cottages: selectedCottages,
-          selected_packages: selectedPackage.name,
+          // selected_packages: selectedPackage.name,
           selected_occupancy: occupancyType,
           base_price: basePrice,
-          package_price: packagePrice,
+          // package_price: packagePrice,
           total_nights: totalNights,
           price_per_night: pricePerNight,
           grand_total: grandTotal,
@@ -1274,7 +1284,9 @@ const Checkouts = () => {
                       {selectedCottages} Cottage X {totalNights} Nights
                     </h5>
                     <p style={{ textTransform: "capitalize" }}>
-                      ({selectedRoom?.room_name} {selectedPackage?.name})
+                      ({selectedRoom?.room_name}
+                      {/* {selectedPackage?.name} */}
+                      )
                     </p>
                   </div>
                   <div className="rightRoomPrice">
@@ -1367,10 +1379,10 @@ const Checkouts = () => {
         checkInDate={formattedCheckInDate}
         checkOutDate={formattedCheckOutDate}
         selectedRoom={selectedRoom}
-        selectedPackage={selectedPackage}
+        // selectedPackage={selectedPackage}
         selectedCottages={selectedCottages}
         basePrice={basePrice}
-        packagePrice={packagePrice}
+        // packagePrice={packagePrice}
         occupancyType={occupancyType}
         pricePerNight={pricePerNight}
       />

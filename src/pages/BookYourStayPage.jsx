@@ -86,18 +86,15 @@ const BookYourStayPage = () => {
 
   const handleCottageChange = (roomId, index) => {
     const room = connectedPackages.find(r => r.id === roomId);
-    const availableCottages = JSON.parse(room.status).available;
+    const availableCottages = room.availability?.available || 0;
     const numCottages = index + 1;
 
     if (numCottages <= availableCottages) {
-      // Create array of indices to animate
-      const animateIndices = [];
-      for (let i = 0; i < numCottages; i++) {
-        animateIndices.push(i);
-      }
+      // Create an array of indices to animate
+      const animateIndices = Array.from({ length: numCottages }, (_, i) => i);
       setAnimatingCottages(animateIndices);
 
-      // Clear animation after delay
+      // Clear animation after a delay
       setTimeout(() => {
         setAnimatingCottages([]);
       }, 500);
@@ -110,6 +107,7 @@ const BookYourStayPage = () => {
       calculatePrice(roomId, selectedOption, selectedRoom, selectedPackage, numCottages);
     }
   };
+
 
   const calculatePrice = (roomId, option, roomPrice, pkg, cottages) => {
     if (roomId === selectedRoomId) {
@@ -171,6 +169,7 @@ const BookYourStayPage = () => {
   const fetchRoomData = async () => {
     try {
       const response = await API.get("/rooms/room");
+      console.log("Rooms data", response.data)
 
       if (Array.isArray(response.data) && response.data.length === 0) {
         navigate("/");
@@ -199,7 +198,7 @@ const BookYourStayPage = () => {
     if (!roomData || !packagesData) return [];
 
     return roomData.map((room) => {
-      const roomPackages = JSON.parse(room.package_ids).map((packageId) => {
+      const roomPackages = room.package_ids.map((packageId) => {
         return packagesData.find((pkg) => pkg.id === packageId);
       });
       return {
@@ -233,9 +232,9 @@ const BookYourStayPage = () => {
 
   const validateBooking = async (roomId) => {
     const errors = {};
-
+  
     const nonAvailability = await ChecknonAvailableDates(roomId);
-
+  
     if (!checkInDate) {
       errors.checkInDate = "Please select a check-in date";
     }
@@ -252,42 +251,33 @@ const BookYourStayPage = () => {
     if (!selectedOption || selectedRoomId !== roomId) {
       errors.selectedOption = "Please select occupancy type";
     }
-    // if (!selectedPackage || selectedRoomId !== roomId) {
-    //   errors.selectedPackage = "Please select a package";
-    // }
     if (!totalPrice || selectedRoomId !== roomId) {
       errors.totalPrice = "Total price calculation is missing";
     }
-
-    const room = connectedPackages.find(r => r.id === roomId);
-    const availableCottages = JSON.parse(room?.status || "{}").available || 0;
-
+  
+    const room = connectedPackages.find((r) => r.id === roomId);
+    const availableCottages = room?.availability?.available || 0;
+  
     if (availableCottages === 0) {
       errors.selectedCottages = "No cottages are available for booking!";
       alert("No cottages are available for booking! Please try another room or date.");
     } else if (!selectedCottages || selectedCottages > availableCottages) {
       errors.selectedCottages = "Invalid number of cottages selected.";
     }
-
+  
     if (nonAvailability) {
-
       const formattedCheckInDate = new Date(checkInDate).toISOString().split("T")[0];
       const formattedCheckOutDate = new Date(checkOutDate).toISOString().split("T")[0];
-
-      // console.log("Formatted Check-in Date:", formattedCheckInDate);
-      // console.log("Formatted Check-out Date:", formattedCheckOutDate);
-
+  
       if (formattedCheckInDate === nonAvailability.date) {
         errors.checkInDate = "Selected check-in date is not available";
       }
-      // if (formattedCheckOutDate === nonAvailability.date) {
-      //   errors.checkOutDate = "Selected check-out date is not available";
-      // }
     }
-
+  
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
+  
 
 
 
@@ -341,6 +331,27 @@ const BookYourStayPage = () => {
         return Tent;
       default:
         return Doublebed;
+    }
+  };
+
+
+
+  const sendDateToBackend = async (date) => {
+    try {
+      const response = await API.post("/rooms/roombydate", { date });
+      console.log("Date sent successfully:", response.data);
+      if (Array.isArray(response.data) && response.data.length === 0) {
+        navigate("/");
+      } else {
+        setRoomData(response.data);
+        const twinCottage = response.data.find(room => room.room_name === "Twin Cottage");
+        if (twinCottage) {
+          setRoomType(twinCottage.room_name);
+        }
+      }
+
+    } catch (error) {
+      console.error("Error sending date:", error);
     }
   };
 
@@ -405,6 +416,7 @@ const BookYourStayPage = () => {
                             setCheckInDate(date);
                             setCheckOutDate(null);
                             setIsCheckInPickerOpen(false);
+                            sendDateToBackend(date)
                           }}
                           minDate={new Date()}
                           inline
@@ -431,6 +443,7 @@ const BookYourStayPage = () => {
                           key={index}
                           onClick={() => {
                             setCheckInDate(dateObj.date);
+                            sendDateToBackend(dateObj.date)
                             setIsCheckInPickerOpen(false);
                             setCheckOutDate(null);
                           }}
@@ -642,7 +655,7 @@ const BookYourStayPage = () => {
                     <h4 className="model-title">{room.room_name}</h4>
 
                     <ul>
-                      {JSON.parse(room.amenities).map((a, idx) => (
+                      {room.amenities.map((a, idx) => (
                         <li key={idx}>{a}</li>
                       ))}
                     </ul>
@@ -669,36 +682,35 @@ const BookYourStayPage = () => {
 
                 <div className="col-md-8">
                   <div className="rightBookstaybox ">
+
+
                     <div className="firstrightBook">
                       <div className="mb-2">
-                        <span className="numberselect">
-                          1. Number of cottage(s) Available
-                        </span>{" "}
+                        <span className="numberselect">1. Number of cottage(s) Available</span>{" "}
                         <span className="tickbg">
-                          Available: <em>{JSON.parse(room.status).available}</em>
+                          Available: <em>{room.availability?.available || 0}</em>
                         </span>
                         <span className="tickbg">
-                          Booked: <em>{JSON.parse(room.status).booked}</em>
+                          Booked: <em>{room.availability?.booked || 0}</em>
                         </span>
                       </div>
 
-                      <p className="text-muted"></p>
                       <div className="availablebox">
                         <div className="autoscroll">
                           <div className="availablebox">
                             <div className="autoscroll">
-                              {Array.from({
-                                length: JSON.parse(room.status).available,
-                              }).map((_, index) => (
+                              {/* Available Cottages */}
+                              {Array.from({ length: room.availability?.available || 0 }).map((_, index) => (
                                 <div
-                                  className={`bookdiv available ${index < selectedCottages && selectedRoomId === room.id ? 'selected_cottage' : ''
-                                    } ${animatingCottages.includes(index) ? 'animate-select' : ''}`}
+                                  className={`bookdiv available ${index < selectedCottages && selectedRoomId === room.id ? "selected_cottage" : ""
+                                    } ${animatingCottages.includes(index) ? "animate-select" : ""}`}
                                   onClick={() => handleCottageChange(room.id, index)}
                                   key={`available-${index}`}
                                   style={{
-                                    transition: 'all 0.3s ease',
-                                    transform: animatingCottages.includes(index) ? 'scale(.9)' : 'scale(1)',
-                                    backgroundColor: index < selectedCottages && selectedRoomId === room.id ? '#f7f7ca29' : '',
+                                    transition: "all 0.3s ease",
+                                    transform: animatingCottages.includes(index) ? "scale(.9)" : "scale(1)",
+                                    backgroundColor:
+                                      index < selectedCottages && selectedRoomId === room.id ? "#f7f7ca29" : "",
                                   }}
                                 >
                                   <img src={available} alt="Available" />
@@ -706,9 +718,8 @@ const BookYourStayPage = () => {
                                 </div>
                               ))}
 
-                              {Array.from({
-                                length: JSON.parse(room.status).booked,
-                              }).map((_, index) => (
+                              {/* Booked Cottages */}
+                              {Array.from({ length: room.availability?.booked || 0 }).map((_, index) => (
                                 <div className="bookdiv" key={`booked-${index}`}>
                                   <img src={Groupimg} alt="Booked" />
                                   <p>Booked</p>
@@ -719,6 +730,9 @@ const BookYourStayPage = () => {
                         </div>
                       </div>
                     </div>
+
+
+
                     {/* <div className="SecoundrightBook">
                       <div className="mb-2">
                         <span className="numberselect">

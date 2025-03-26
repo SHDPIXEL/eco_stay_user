@@ -216,7 +216,7 @@ const Home = () => {
                                         <div className="luxboxcontent ">
                                             <h3 >{room.room_name}</h3>
                                             <p className="amenities">
-                                                {JSON.parse(room.amenities).map((amenity, idx) => (
+                                                {room.amenities.map((amenity, idx) => (
                                                     <span className="amenities" key={idx}>
                                                         <div className="amenities-tags">
                                                             {amenity}
@@ -281,7 +281,7 @@ const Home = () => {
                                         <h6>What’s in There for You?</h6>
                                         <ul>
                                             {
-                                                JSON.parse(room.amenities).map((amenity) => (
+                                                room.amenities.map((amenity) => (
                                                     <li>{amenity}</li>
                                                 ))
                                             }

@@ -1,9 +1,10 @@
 import axios from "axios";
 
 // Base URL for the API
-// const BASE_URL = "http://192.168.17.244:3030";
-// const BASE_URL = "http://172.20.10.2:3030";
-export const BASE_URL = "https://ecoback.demo.shdpixel.com";
+
+// export const BASE_URL = "https://ecoback.demo.shdpixel.com";
+export const BASE_URL = "http://192.168.1.11:3030";
+
 
 // Create an Axios instance
 const API = axios.create({
