@@ -43,6 +43,9 @@ const MainHeader = () => {
         sticky="top"
         className="Headermain"
         expanded={expanded}
+        style={{
+          padding: "0 5rem"
+        }}
       >
         <Container fluid>
           <Navbar.Brand as={Link} to="/">
