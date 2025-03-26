@@ -177,7 +177,7 @@ const BookYourStayPage = () => {
       } else {
         setRoomData(response.data);
         const twinCottage = response.data.find(room => room.room_name === "Twin Cottage");
-        if(twinCottage) {
+        if (twinCottage) {
           setRoomType(twinCottage.room_name);
         }
       }
@@ -252,9 +252,9 @@ const BookYourStayPage = () => {
     if (!selectedOption || selectedRoomId !== roomId) {
       errors.selectedOption = "Please select occupancy type";
     }
-    if (!selectedPackage || selectedRoomId !== roomId) {
-      errors.selectedPackage = "Please select a package";
-    }
+    // if (!selectedPackage || selectedRoomId !== roomId) {
+    //   errors.selectedPackage = "Please select a package";
+    // }
     if (!totalPrice || selectedRoomId !== roomId) {
       errors.totalPrice = "Total price calculation is missing";
     }
@@ -298,15 +298,15 @@ const BookYourStayPage = () => {
 
     if (isValid) {
       const selectedRoomData = connectedPackages.find(room => room.id === roomId);
-      
+
       console.log("selected room data", selectedRoomData)
 
       let selectedImage = null;
       if (selectedRoomData?.room_images) {
-          const roomImages = JSON.parse(selectedRoomData.room_images);
-          if (roomImages.length > 0) {
-              selectedImage = roomImages[0]; // Get the first image
-          }
+        const roomImages = JSON.parse(selectedRoomData.room_images);
+        if (roomImages.length > 0) {
+          selectedImage = roomImages[0]; // Get the first image
+        }
       }
       console.log("room image", selectedImage);
 
@@ -345,7 +345,7 @@ const BookYourStayPage = () => {
   };
 
   return (
-    <>
+    <div className="padding-x">
       <div className="container-fluid mt-3">
         <div className="bookstay">
           <h6>Book your Stay</h6>
@@ -358,7 +358,15 @@ const BookYourStayPage = () => {
               <div className="daterange">
                 <p>
                   Select your Check In date:{" "}
-                  <span>
+                  <span
+                    style={{
+                      border: "black",
+                      backgroundColor: "#ccf360",
+                      padding: "5px 10px",
+                      borderRadius: "12px",
+                      border: "1px solid #000",
+                    }}
+                  >
                     {checkInDate
                       ? checkInDate.toLocaleDateString("en-US", {
                         weekday: "short",
@@ -440,7 +448,15 @@ const BookYourStayPage = () => {
               <div className="daterange">
                 <p>
                   Select your Check Out date:{" "}
-                  <span>
+                  <span
+                    style={{
+                      border: "black",
+                      backgroundColor: "#ccf360",
+                      padding: "5px 10px",
+                      borderRadius: "12px",
+                      border: "1px solid #000",
+                    }}
+                  >
                     {checkOutDate
                       ? checkOutDate.toLocaleDateString("en-US", {
                         weekday: "short",
@@ -569,7 +585,7 @@ const BookYourStayPage = () => {
               cottages: 3,
             },
           ];
-          
+
           return (
             <div
               className="bookstayboxMain"
@@ -703,7 +719,7 @@ const BookYourStayPage = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="SecoundrightBook">
+                    {/* <div className="SecoundrightBook">
                       <div className="mb-2">
                         <span className="numberselect">
                           2. Select any type of package
@@ -738,8 +754,8 @@ const BookYourStayPage = () => {
                                 padding: "10px",
                                 borderRadius: "8px",
                                 marginBottom: "10px",
-                              }}
-                            >
+                              }}>
+
                               <h5>
                                 Package {i + 1}: {pkg.name}
                               </h5>
@@ -770,11 +786,11 @@ const BookYourStayPage = () => {
                           ))}
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     <div className="thirdrightBook">
                       <div className="mb-2">
                         <span className="numberselect">
-                          3. Select type of occupancy
+                          2. Select type of occupancy
                         </span>
                       </div>
                       {validationErrors.selectedOption && activeRoomId === room.id && (
@@ -807,8 +823,8 @@ const BookYourStayPage = () => {
                                     option.priceKey === "single_base_price"
                                       ? room.single_base_price
                                       : option.priceKey === "double_base_price"
-                                      ? room.double_base_price
-                                      : room.triple_base_price
+                                        ? room.double_base_price
+                                        : room.triple_base_price
                                   )
                                 }
                                 style={{
@@ -858,7 +874,7 @@ const BookYourStayPage = () => {
                         <div className="col-md-6">
                           <div className="mb-2">
                             <span className="numberselect">
-                              4. Your booking price estimate is:{" "}
+                              3. Your booking price estimate is:{" "}
                               <span className="text-color">
                                 ₹ {selectedRoomId === room.id ? totalPrice : 0}
                               </span>
@@ -901,7 +917,7 @@ const BookYourStayPage = () => {
       </div>
       <ContactSection />
       <MainFooter />
-    </>
+    </div>
   );
 };
 export default BookYourStayPage;

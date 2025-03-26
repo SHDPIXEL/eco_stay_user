@@ -8,17 +8,10 @@ import sucssimg from '../assets/images/Success.svg';
 import houseimg from '../assets/images/House.svg';
 import safarimg from '../assets/images/Safari.svg';
 import bestchoiceimg from '../assets/images/Bestchoice.svg';
-import lux1img from '../assets/images/lux1.png';
-import lux2img from '../assets/images/lux2.png';
-import lux3img from '../assets/images/lux3.png';
-import bookimg1 from '../assets/images/bookimg1.png';
-import bookimg2 from '../assets/images/bookimg2.png';
-import bookimg3 from '../assets/images/bookimg3.png';
 import Houseicon from '../assets/images/Houseicon.svg';
 import facilityimg1 from '../assets/images/facilityimg1.png';
 import facilityimg2 from '../assets/images/facilityimg2.png';
 import facilityimg3 from '../assets/images/facilityimg3.png';
-import mapimg from '../assets/images/map.png';
 import ContactSection from './ContactSection';
 import ReviewSlider from "./ReviewSlider";
 import LoginModal from "./LoginModal";
@@ -80,7 +73,7 @@ const Home = () => {
     }, [])
 
     return (
-        <>
+        <div className="padding-x">
             <div className='container-fluid'>
                 <div className='banner-top'>
                     <div className='imgbanner position-relative'>
@@ -444,7 +437,7 @@ const Home = () => {
             <MainFooter />
             <LoginModal setLoginModalshow={setLoginModalshow} loginModalshow={loginModalshow} />
 
-        </>
+        </div>
     )
 }
 

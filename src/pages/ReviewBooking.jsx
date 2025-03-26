@@ -93,7 +93,9 @@ const ReviewBooking = () => {
       ? selectedRoom?.double_base_price
       :selectedRoom?.triple_base_price
 
-  const packagePrice = selectedPackage?.package_price || 0;
+  // const packagePrice = selectedPackage?.package_price || 0;
+  const packagePrice = 0;
+
 
   const totalNights = differenceInDays(new Date(checkOutDate), new Date(checkInDate));
 
@@ -101,12 +103,13 @@ const ReviewBooking = () => {
   const pricePerNight = basePrice + packagePrice;
   const newPricePerNight = newPrice + packagePrice;
   const grandTotal = pricePerNight * totalNights * selectedCottages;
-  const newGrandTotal = newPricePerNight * totalNights * selectedCottages;
+  const newGrandTotal = pricePerNight * totalNights * selectedCottages;
 
   console.log("newGrandTotal: ", newGrandTotal, "grandTotal: ", grandTotal);
 
   // const discountPrice = newGrandTotal - grandTotal;
-  let discountPrice = Math.abs(newGrandTotal - grandTotal);
+  // let discountPrice = Math.abs(newGrandTotal - grandTotal);
+  let discountPrice = 0;
   if (newGrandTotal < grandTotal) discountPrice = 0;
 
   const discountPercentage = grandTotal && newGrandTotal && newGrandTotal > grandTotal
@@ -114,8 +117,9 @@ const ReviewBooking = () => {
     : 0;
 
 
-  const agentDiscountAmount = (grandTotal * agentDiscountPercentage) / 100;
-  const finalTotalAfterAgentDiscount = grandTotal - agentDiscountAmount;
+  // const agentDiscountAmount = (grandTotal * agentDiscountPercentage) / 100;
+  const agentDiscountAmount = 0;
+  const finalTotalAfterAgentDiscount = grandTotal - 0;
 
 
   // Calculate GST based on amount
@@ -159,7 +163,7 @@ const ReviewBooking = () => {
   };
 
   return (
-    <>
+    <div className="padding-x">
       <div className="container-fluid mt-3">
         <div className="row">
           <div className="col-md-8">
@@ -230,17 +234,21 @@ const ReviewBooking = () => {
                             Number of cottage(s):{" "}
                             <span>{selectedCottages}</span>
                           </p>
-                          <p>
+                          {/* <p>
                             Type of package: <span>{packageName}</span>
-                          </p>
+                          </p> */}
                           <p>
                             Type of occupancy: <span>{occupancyType}</span>
                           </p>
                         </div>
                         <div className="rightpackD">
                           <h6><span className="textdis">₹ {(newPrice).toFixed(2)}</span> ₹ {basePrice.toFixed(2)}/room/per night</h6>
-                          <h6>₹ {packagePrice.toFixed(2)}/package</h6>
-                          <h6>Total Price : ₹ {pricePerNight.toFixed(2)} * {selectedCottages} Cottage</h6>
+                          {/* <h6>₹ {packagePrice.toFixed(2)}/package</h6> */}
+                          <h6
+                          style={{
+                            paddingTop: "14px"
+                          }}
+                          >Total Price : ₹ {pricePerNight.toFixed(2)} * {selectedCottages} Cottage</h6>
 
                         </div>
                       </div>
@@ -325,7 +333,7 @@ const ReviewBooking = () => {
                 </div>
 
                 {/* Existing Discount */}
-                <div className="TotalDiscountDiv">
+                {/* <div className="TotalDiscountDiv">
                   <div className="leftTotalDiscount text-color">
                     <h5>
                       Total Discount <i className="bi bi-info-circle h6" onClick={() => alert(`${discountPercentage}% Off`)}
@@ -333,7 +341,7 @@ const ReviewBooking = () => {
                     </h5>
                   </div>
                   <div className="rightTotalDiscount text-color">₹ {discountPrice.toFixed(2)}</div>
-                </div>
+                </div> */}
 
                 {/* Agent Discount (Only for Agents) */}
                 {userType === "agent" && (
@@ -349,14 +357,14 @@ const ReviewBooking = () => {
                 )}
 
                 <hr />
-                <div className="PriceafterDiv">
+                {/* <div className="PriceafterDiv">
                   <div className="leftPriceafter">
                     <h5>Price after Discount</h5>
                   </div>
                   <div className="rightPriceafter">₹ {finalTotalAfterAgentDiscount.toFixed(2)}</div>
-                </div>
+                </div> */}
 
-                <hr />
+                {/* <hr /> */}
                 <div className="taxDiv">
                   <div className="lefttax">
                     <h5>
@@ -403,7 +411,7 @@ const ReviewBooking = () => {
         </div>
         <p className="copyright">© 2024. VIRYA WILDLIFE TOURS LLP.</p>
       </div>
-    </>
+    </div>
   );
 };
 

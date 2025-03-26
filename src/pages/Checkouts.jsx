@@ -558,7 +558,7 @@ const Checkouts = () => {
   }
 
   return (
-    <>
+    <div className="padding-x">
       <div className="container-fluid mt-3">
         <div className="row">
           <div className="col-md-8 mb-4">
@@ -1374,7 +1374,7 @@ const Checkouts = () => {
         occupancyType={occupancyType}
         pricePerNight={pricePerNight}
       />
-    </>
+    </div>
   );
 };
 export default Checkouts;

@@ -327,10 +327,10 @@ svg.banner-overlay {
 
 .tagline-main {
     color: green;
-    font-size:x-small;
+    font-size: x-small;
     margin-bottom: 0;
     margin-top: 10px;
-    font-weight:500;
+    font-weight: 500;
 }
 
 .tagline-sub {
@@ -340,7 +340,7 @@ svg.banner-overlay {
     margin-top: 0;
 }
 
-.tagline-container{
+.tagline-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -421,7 +421,7 @@ svg.luximgoverlay {
     right: 20px;
 }
 
-.roomType-container{
+.roomType-container {
     min-width: 200px !important;
 }
 
@@ -2311,6 +2311,18 @@ hr {
     background-color: #f1f1e7;
 }
 
+.padding-x {
+    padding: 0 5rem;
+}
+
+
+@media (max-width: 768px) {
+
+    .padding-x {
+        padding: 0 1rem;
+    }
+}
+
 .user-info .user-image {
     object-fit: cover;
     border: 2px solid #806a50;
@@ -2363,7 +2375,7 @@ hr {
 
 /* styles.css */
 .selected-date {
-    background-color: #ccf360;
+    background-color: #dce9bc;
     color: #000;
     /* Optional for better text visibility */
     border-radius: 4px;
