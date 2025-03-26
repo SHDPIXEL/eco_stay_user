@@ -50,7 +50,7 @@ const MainHeader = () => {
         <Container fluid>
           <Navbar.Brand as={Link} to="/">
             <div className="tagline-container">
-              <img src={logo} alt="Logo" width={"200px"} />
+              <img src={logo} alt="Logo" width={"130px"} />
               <p className="tagline-main">A Virya Wildlife Tours Resort</p>
               <p className="tagline-sub">Earthy Nature Stay with Luxe</p>
             </div>
