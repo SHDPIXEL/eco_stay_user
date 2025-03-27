@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import reviewPack1 from "../assets/images/reviewPack1.png";
 import { differenceInDays } from "date-fns";
 import API, { BASE_URL } from "../api";
+import PolicyTabs from "../components/PolicyTabs";
 
 
 const ReviewBooking = () => {
@@ -287,35 +288,8 @@ const ReviewBooking = () => {
               </ul>
             </div>
 
-            <div className="bookstay informbox mt-3 mb-3">
-              <div className="d-md-flex justify-content-between">
-                <h6>Terms & Conditions</h6>
-                <div>
-                  <div className="rightpackD">
-                    <div className="d-flex">
-                      <div className="actionicon">Privacy Policy</div>
-                      <div className="actionicon">
-                        Cancellation & Refund Policy
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <PolicyTabs />
 
-              <ul className="m-0 p-0 ps-4 mt-2">
-                <li>
-                  45 days before check-in : 10% on total invoice amount as
-                  banking and administration fees.
-                </li>
-                <li> Between 45 - 30 days : 30% of total invoice amount.</li>
-                <li> Between 30 - 15 days : 50% of total invoice amount.</li>
-                <li>
-                  {" "}
-                  Bookings cancelled under 15 days before check-in or No Show :
-                  100% of total invoice amount.
-                </li>
-              </ul>
-            </div>
           </div>
           <div className="col-md-4">
             <div className="PriceBox w-100 position-sticky">
