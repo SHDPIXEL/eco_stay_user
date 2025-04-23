@@ -7,7 +7,6 @@ import Tent from "../assets/images/Tent.svg";
 import Groupimg from "../assets/images/Group.svg";
 import Doublebed from "../assets/images/Doublebed.svg";
 import tents from "../assets/images/tents.png";
-import bookyour1 from "../assets/images/bookyour1.png";
 import available from "../assets/images/Cottage.svg";
 import Adultimg from "../assets/images/group-3-line.svg";
 import ReviewSlider from "./ReviewSlider";
@@ -35,14 +34,15 @@ const BookYourStayPage = () => {
   const [selectedCottages, setSelectedCottages] = useState(1);
   const [animatingCottages, setAnimatingCottages] = useState([]);
   const [isModelOpen, setIsmodelOpen] = useState(false);
-  const [modalContent, setModalContent] = useState({ title: "", description: "" });
+  const [modalContent, setModalContent] = useState({
+    title: "",
+    description: "",
+  });
   const [roomType, setRoomType] = useState("");
   const [nonAvailableDates, setNonavailability] = useState();
 
   const [currentIndexes, setCurrentIndexes] = useState({}); // Store indexes for each room
   // const images = JSON.parse(room.room_images);
-
-
 
   const handleModelOpen = (title, description) => {
     setModalContent({ title, description });
@@ -85,7 +85,7 @@ const BookYourStayPage = () => {
   };
 
   const handleCottageChange = (roomId, index) => {
-    const room = connectedPackages.find(r => r.id === roomId);
+    const room = connectedPackages.find((r) => r.id === roomId);
     const availableCottages = room.availability?.available || 0;
     const numCottages = index + 1;
 
@@ -104,10 +104,15 @@ const BookYourStayPage = () => {
       }
       setSelectedRoomId(roomId);
       setSelectedCottages(numCottages);
-      calculatePrice(roomId, selectedOption, selectedRoom, selectedPackage, numCottages);
+      calculatePrice(
+        roomId,
+        selectedOption,
+        selectedRoom,
+        selectedPackage,
+        numCottages
+      );
     }
   };
-
 
   const calculatePrice = (roomId, option, roomPrice, pkg, cottages) => {
     if (roomId === selectedRoomId) {
@@ -120,16 +125,27 @@ const BookYourStayPage = () => {
 
   useEffect(() => {
     if (selectedRoomId && selectedOption && selectedRoom && selectedPackage) {
-      calculatePrice(selectedRoomId, selectedOption, selectedRoom, selectedPackage, selectedCottages);
+      calculatePrice(
+        selectedRoomId,
+        selectedOption,
+        selectedRoom,
+        selectedPackage,
+        selectedCottages
+      );
     }
-  }, [selectedRoomId, selectedOption, selectedRoom, selectedPackage, selectedCottages]);
+  }, [
+    selectedRoomId,
+    selectedOption,
+    selectedRoom,
+    selectedPackage,
+    selectedCottages,
+  ]);
 
   const filteredRooms = selectedRoomType
     ? connectedPackages.filter((room) => room.id === selectedRoomType)
     : connectedPackages;
 
   // console.log("filtered rooms", filteredRooms)
-
 
   const getRecentDates = (startDate) => {
     const dates = [];
@@ -169,13 +185,15 @@ const BookYourStayPage = () => {
   const fetchRoomData = async () => {
     try {
       const response = await API.get("/rooms/room");
-      console.log("Rooms data", response.data)
+      console.log("Rooms data", response.data);
 
       if (Array.isArray(response.data) && response.data.length === 0) {
         navigate("/");
       } else {
         setRoomData(response.data);
-        const twinCottage = response.data.find(room => room.room_name === "Twin Cottage");
+        const twinCottage = response.data.find(
+          (room) => room.room_name === "Twin Cottage"
+        );
         if (twinCottage) {
           setRoomType(twinCottage.room_name);
         }
@@ -230,11 +248,35 @@ const BookYourStayPage = () => {
     }
   };
 
+  const checkRoomAvailabilityForRange = async (roomId) => {
+    try {
+      const formatDateLocal = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const response = await API.post("/auth/user/check-range", {
+        roomId, // add this here
+        checkInDate: formatDateLocal(checkInDate),
+        checkOutDate: formatDateLocal(checkOutDate),
+        requiredCount: selectedCottages,
+      });
+      console.log("available rooms:", response.data.unavailableDates);
+      return response.data;
+    } catch (e) {
+      console.error("Error checking room availability for range", e);
+      return null;
+    }
+  };
+
   const validateBooking = async (roomId) => {
     const errors = {};
-  
+
     const nonAvailability = await ChecknonAvailableDates(roomId);
-  
+    const availabilityResponse = await checkRoomAvailabilityForRange(roomId);
+
     if (!checkInDate) {
       errors.checkInDate = "Please select a check-in date";
     }
@@ -254,42 +296,88 @@ const BookYourStayPage = () => {
     if (!totalPrice || selectedRoomId !== roomId) {
       errors.totalPrice = "Total price calculation is missing";
     }
-  
+
     const room = connectedPackages.find((r) => r.id === roomId);
     const availableCottages = room?.availability?.available || 0;
-  
+
     if (availableCottages === 0) {
       errors.selectedCottages = "No cottages are available for booking!";
-      alert("No cottages are available for booking! Please try another room or date.");
+      alert(
+        "No cottages are available for booking! Please try another room or date."
+      );
     } else if (!selectedCottages || selectedCottages > availableCottages) {
       errors.selectedCottages = "Invalid number of cottages selected.";
     }
-  
+
     if (nonAvailability) {
-      const formattedCheckInDate = new Date(checkInDate).toISOString().split("T")[0];
-      const formattedCheckOutDate = new Date(checkOutDate).toISOString().split("T")[0];
-  
+      const formattedCheckInDate = new Date(checkInDate)
+        .toISOString()
+        .split("T")[0];
+      const formattedCheckOutDate = new Date(checkOutDate)
+        .toISOString()
+        .split("T")[0];
+
       if (formattedCheckInDate === nonAvailability.date) {
         errors.checkInDate = "Selected check-in date is not available";
       }
     }
-  
+
+    let dayWiseBookingData = []; // Array to store day-wise data
+
+    if (availabilityResponse && availabilityResponse.success === false) {
+      const unavailableDates = availabilityResponse.unavailableDates;
+
+      for (let date of unavailableDates) {
+        const formattedDate = new Date(date.date).toISOString().split("T")[0];
+        let available = date.available || 0;
+
+        const pricePerCottage =
+          selectedRoom.priceKey === "single_base_price"
+            ? selectedRoom.single_base_price
+            : selectedRoom.priceKey === "double_base_price"
+            ? selectedRoom.double_base_price
+            : selectedRoom.triple_base_price;
+
+        console.log("prices",pricePerCottage);    
+
+        let priceForDay = available * selectedCottages * pricePerCottage; // Replace with your price calculation logic
+
+        dayWiseBookingData.push({
+          date: formattedDate,
+          available,
+          price: priceForDay,
+        });
+      }
+
+      // Prompt user to proceed
+      const warning = unavailableDates
+        .map((d) => `Date: ${d.date}, Available: ${d.available}`)
+        .join("\n");
+
+      const proceed = window.confirm(
+        `Some dates do not have enough cottages available:\n${warning}\n\nDo you still want to proceed?`
+      );
+
+      if (!proceed) {
+        errors.availability = "Insufficient availability on selected dates.";
+      }
+    }
+
     setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+    return Object.keys(errors).length === 0 ? dayWiseBookingData : null;
   };
-  
-
-
 
   const handleBookStay = async (roomId) => {
     setActiveRoomId(roomId);
 
-    const isValid = await validateBooking(roomId);
+    const dayWiseBookingData = await validateBooking(roomId);
 
-    if (isValid) {
-      const selectedRoomData = connectedPackages.find(room => room.id === roomId);
+    if (dayWiseBookingData) {
+      const selectedRoomData = connectedPackages.find(
+        (room) => room.id === roomId
+      );
 
-      console.log("selected room data", selectedRoomData)
+      console.log("selected room data", selectedRoomData);
 
       let selectedImage = null;
       if (selectedRoomData?.room_images) {
@@ -310,6 +398,7 @@ const BookYourStayPage = () => {
           totalPrice,
           selectedCottages,
           selectedRoomImage: selectedImage, // Pass image directly
+          dayWiseBookingData,
         },
       });
     }
@@ -334,8 +423,6 @@ const BookYourStayPage = () => {
     }
   };
 
-
-
   const sendDateToBackend = async (date) => {
     try {
       const response = await API.post("/rooms/roombydate", { date });
@@ -344,12 +431,13 @@ const BookYourStayPage = () => {
         navigate("/");
       } else {
         setRoomData(response.data);
-        const twinCottage = response.data.find(room => room.room_name === "Twin Cottage");
+        const twinCottage = response.data.find(
+          (room) => room.room_name === "Twin Cottage"
+        );
         if (twinCottage) {
           setRoomType(twinCottage.room_name);
         }
       }
-
     } catch (error) {
       console.error("Error sending date:", error);
     }
@@ -380,10 +468,10 @@ const BookYourStayPage = () => {
                   >
                     {checkInDate
                       ? checkInDate.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        day: "2-digit",
-                        month: "short",
-                      })
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                        })
                       : "Not Selected"}
                   </span>
                 </p>
@@ -416,7 +504,7 @@ const BookYourStayPage = () => {
                             setCheckInDate(date);
                             setCheckOutDate(null);
                             setIsCheckInPickerOpen(false);
-                            sendDateToBackend(date)
+                            sendDateToBackend(date);
                           }}
                           minDate={new Date()}
                           inline
@@ -438,12 +526,13 @@ const BookYourStayPage = () => {
 
                       return (
                         <div
-                          className={`libox ${isSelected ? "selected-date" : ""
-                            }`}
+                          className={`libox ${
+                            isSelected ? "selected-date" : ""
+                          }`}
                           key={index}
                           onClick={() => {
                             setCheckInDate(dateObj.date);
-                            sendDateToBackend(dateObj.date)
+                            sendDateToBackend(dateObj.date);
                             setIsCheckInPickerOpen(false);
                             setCheckOutDate(null);
                           }}
@@ -472,10 +561,10 @@ const BookYourStayPage = () => {
                   >
                     {checkOutDate
                       ? checkOutDate.toLocaleDateString("en-US", {
-                        weekday: "short",
-                        day: "2-digit",
-                        month: "short",
-                      })
+                          weekday: "short",
+                          day: "2-digit",
+                          month: "short",
+                        })
                       : "Not Selected"}
                   </span>
                 </p>
@@ -524,10 +613,11 @@ const BookYourStayPage = () => {
                   <div className="autoscroll">
                     {checkOutDates.map((dateObj, index) => (
                       <div
-                        className={`libox ${dateObj.date.getTime() === checkOutDate?.getTime()
-                          ? "selected-date"
-                          : ""
-                          }`}
+                        className={`libox ${
+                          dateObj.date.getTime() === checkOutDate?.getTime()
+                            ? "selected-date"
+                            : ""
+                        }`}
                         key={index}
                         onClick={() => setCheckOutDate(dateObj.date)}
                       >
@@ -547,7 +637,8 @@ const BookYourStayPage = () => {
             <div className="roomtype-container">
               {/* Room Type Header */}
               <div className="roomtype-header">
-                {new Set(connectedPackages.map((room) => room.id)).size} Room Types:
+                {new Set(connectedPackages.map((room) => room.id)).size} Room
+                Types:
               </div>
 
               {/* Show All Types */}
@@ -565,10 +656,16 @@ const BookYourStayPage = () => {
               {connectedPackages.map((room, index) => (
                 <div
                   key={index}
-                  className={`roombox ${selectedRoomType === room.type ? "active" : ""}`}
+                  className={`roombox ${
+                    selectedRoomType === room.type ? "active" : ""
+                  }`}
                   onClick={() => setSelectedRoomType(room.id)}
                 >
-                  <img src={getRoomImage(room.room_name)} alt={room.name} className="room-icon" />
+                  <img
+                    src={getRoomImage(room.room_name)}
+                    alt={room.name}
+                    className="room-icon"
+                  />
                   {room.room_name}
                   <span className="room-type">{room.type}</span>
                 </div>
@@ -581,19 +678,28 @@ const BookYourStayPage = () => {
           const options = [
             {
               id: 1,
-              name: room.room_name === "Twin Cottage" ? "Double Occupancy" : "Single Occupancy",
+              name:
+                room.room_name === "Twin Cottage"
+                  ? "Double Occupancy"
+                  : "Single Occupancy",
               priceKey: "single_base_price",
               cottages: 1,
             },
             {
               id: 2,
-              name: room.room_name === "Twin Cottage" ? "Quadruple Occupancy" : "Double Occupancy",
+              name:
+                room.room_name === "Twin Cottage"
+                  ? "Quadruple Occupancy"
+                  : "Double Occupancy",
               priceKey: "double_base_price",
               cottages: 2,
             },
             {
               id: 3,
-              name: room.room_name === "Twin Cottage" ? "Sextuple Occupancy" : "Triple Occupancy",
+              name:
+                room.room_name === "Twin Cottage"
+                  ? "Sextuple Occupancy"
+                  : "Triple Occupancy",
               priceKey: "triple_base_price",
               cottages: 3,
             },
@@ -604,13 +710,12 @@ const BookYourStayPage = () => {
               className="bookstayboxMain"
               key={index}
               style={{
-                backgroundColor: index % 2 === 0 ? '#f1f1e7' : '#fff',
+                backgroundColor: index % 2 === 0 ? "#f1f1e7" : "#fff",
               }}
             >
               <div className="row g-0">
                 <div className="col-md-4 border-right">
                   <div className="leftBookstaybox border-0">
-
                     <div key={index} className="slider-container">
                       {/* Default index to 0 if not set */}
                       {JSON.parse(room.room_images).length > 0 && (
@@ -620,9 +725,10 @@ const BookYourStayPage = () => {
                             onClick={() =>
                               setCurrentIndexes((prev) => ({
                                 ...prev,
-                                [index]: prev[index] === 0
-                                  ? JSON.parse(room.room_images).length - 1
-                                  : prev[index] - 1,
+                                [index]:
+                                  prev[index] === 0
+                                    ? JSON.parse(room.room_images).length - 1
+                                    : prev[index] - 1,
                               }))
                             }
                           >
@@ -630,7 +736,11 @@ const BookYourStayPage = () => {
                           </button>
 
                           <img
-                            src={`${BASE_URL}/assets/images/${JSON.parse(room.room_images)[currentIndexes[index] || 0]}`}
+                            src={`${BASE_URL}/assets/images/${
+                              JSON.parse(room.room_images)[
+                                currentIndexes[index] || 0
+                              ]
+                            }`}
                             alt="Room"
                             className="slider-image rounded-img"
                           />
@@ -640,9 +750,11 @@ const BookYourStayPage = () => {
                             onClick={() =>
                               setCurrentIndexes((prev) => ({
                                 ...prev,
-                                [index]: prev[index] === JSON.parse(room.room_images).length - 1
-                                  ? 0
-                                  : (prev[index] || 0) + 1,
+                                [index]:
+                                  prev[index] ===
+                                  JSON.parse(room.room_images).length - 1
+                                    ? 0
+                                    : (prev[index] || 0) + 1,
                               }))
                             }
                           >
@@ -661,10 +773,13 @@ const BookYourStayPage = () => {
                     </ul>
 
                     <div
-                      onClick={() => handleModelOpen(room.room_name, room.description)}
+                      onClick={() =>
+                        handleModelOpen(room.room_name, room.description)
+                      }
                       className="viewallbtn"
                     >
-                      View all Room Amenities</div>
+                      View all Room Amenities
+                    </div>
                   </div>
                 </div>
 
@@ -682,13 +797,14 @@ const BookYourStayPage = () => {
 
                 <div className="col-md-8">
                   <div className="rightBookstaybox ">
-
-
                     <div className="firstrightBook">
                       <div className="mb-2">
-                        <span className="numberselect">1. Number of cottage(s) Available</span>{" "}
+                        <span className="numberselect">
+                          1. Number of cottage(s) Available
+                        </span>{" "}
                         <span className="tickbg">
-                          Available: <em>{room.availability?.available || 0}</em>
+                          Available:{" "}
+                          <em>{room.availability?.available || 0}</em>
                         </span>
                         <span className="tickbg">
                           Booked: <em>{room.availability?.booked || 0}</em>
@@ -700,17 +816,34 @@ const BookYourStayPage = () => {
                           <div className="availablebox">
                             <div className="autoscroll">
                               {/* Available Cottages */}
-                              {Array.from({ length: room.availability?.available || 0 }).map((_, index) => (
+                              {Array.from({
+                                length: room.availability?.available || 0,
+                              }).map((_, index) => (
                                 <div
-                                  className={`bookdiv available ${index < selectedCottages && selectedRoomId === room.id ? "selected_cottage" : ""
-                                    } ${animatingCottages.includes(index) ? "animate-select" : ""}`}
-                                  onClick={() => handleCottageChange(room.id, index)}
+                                  className={`bookdiv available ${
+                                    index < selectedCottages &&
+                                    selectedRoomId === room.id
+                                      ? "selected_cottage"
+                                      : ""
+                                  } ${
+                                    animatingCottages.includes(index)
+                                      ? "animate-select"
+                                      : ""
+                                  }`}
+                                  onClick={() =>
+                                    handleCottageChange(room.id, index)
+                                  }
                                   key={`available-${index}`}
                                   style={{
                                     transition: "all 0.3s ease",
-                                    transform: animatingCottages.includes(index) ? "scale(.9)" : "scale(1)",
+                                    transform: animatingCottages.includes(index)
+                                      ? "scale(.9)"
+                                      : "scale(1)",
                                     backgroundColor:
-                                      index < selectedCottages && selectedRoomId === room.id ? "#f7f7ca29" : "",
+                                      index < selectedCottages &&
+                                      selectedRoomId === room.id
+                                        ? "#f7f7ca29"
+                                        : "",
                                   }}
                                 >
                                   <img src={available} alt="Available" />
@@ -719,8 +852,13 @@ const BookYourStayPage = () => {
                               ))}
 
                               {/* Booked Cottages */}
-                              {Array.from({ length: room.availability?.booked || 0 }).map((_, index) => (
-                                <div className="bookdiv" key={`booked-${index}`}>
+                              {Array.from({
+                                length: room.availability?.booked || 0,
+                              }).map((_, index) => (
+                                <div
+                                  className="bookdiv"
+                                  key={`booked-${index}`}
+                                >
                                   <img src={Groupimg} alt="Booked" />
                                   <p>Booked</p>
                                 </div>
@@ -730,8 +868,6 @@ const BookYourStayPage = () => {
                         </div>
                       </div>
                     </div>
-
-
 
                     {/* <div className="SecoundrightBook">
                       <div className="mb-2">
@@ -807,17 +943,18 @@ const BookYourStayPage = () => {
                           2. Select type of occupancy
                         </span>
                       </div>
-                      {validationErrors.selectedOption && activeRoomId === room.id && (
-                        <p className="text-danger">
-                          {validationErrors.selectedOption}
-                        </p>
-                      )}
+                      {validationErrors.selectedOption &&
+                        activeRoomId === room.id && (
+                          <p className="text-danger">
+                            {validationErrors.selectedOption}
+                          </p>
+                        )}
                       <p className="text-muted">
                         The {room.room_name} Cost for Single Occupancy ₹{" "}
                         {room.single_base_price} and for Double Occupancy ₹{" "}
-                        {room.double_base_price} . Kids upto 6 years complimentary
-                        sharing bed with parents. 6 Years and Above: INR 2000+18%
-                        GST.
+                        {room.double_base_price} . Kids upto 6 years
+                        complimentary sharing bed with parents. 6 Years and
+                        Above: INR 2000+18% GST.
                       </p>
                       <div className="row">
                         <div className="col-md-4 mb-1">
@@ -825,11 +962,12 @@ const BookYourStayPage = () => {
                             {options.map((option) => (
                               <div
                                 key={option.id}
-                                className={`roomType-container d-flex align-items-center justify-center py-2 px-2 ${selectedOption === option.id &&
+                                className={`roomType-container d-flex align-items-center justify-center py-2 px-2 ${
+                                  selectedOption === option.id &&
                                   selectedRoomId === room.id
-                                  ? "selected"
-                                  : ""
-                                  }`}
+                                    ? "selected"
+                                    : ""
+                                }`}
                                 onClick={() =>
                                   handleSelect(
                                     room.id,
@@ -837,27 +975,27 @@ const BookYourStayPage = () => {
                                     option.priceKey === "single_base_price"
                                       ? room.single_base_price
                                       : option.priceKey === "double_base_price"
-                                        ? room.double_base_price
-                                        : room.triple_base_price
+                                      ? room.double_base_price
+                                      : room.triple_base_price
                                   )
                                 }
                                 style={{
                                   cursor: "pointer",
                                   backgroundColor:
                                     selectedOption === option.id &&
-                                      selectedRoomId === room.id
+                                    selectedRoomId === room.id
                                       ? "rgba(235, 214, 193, 0.34)"
                                       : "#fff",
                                   border:
                                     selectedOption === option.id &&
-                                      selectedRoomId === room.id
+                                    selectedRoomId === room.id
                                       ? "2px solid #806a50"
                                       : "1px solid #ccc",
                                   borderRadius: "8px",
                                   marginBottom: "0",
                                   color:
                                     selectedOption === option.id &&
-                                      selectedRoomId === room.id
+                                    selectedRoomId === room.id
                                       ? "#806a50"
                                       : "#000000",
                                 }}
@@ -871,7 +1009,7 @@ const BookYourStayPage = () => {
                                     marginRight: "8px",
                                     color:
                                       selectedOption === option.id &&
-                                        selectedRoomId === room.id
+                                      selectedRoomId === room.id
                                         ? "#000000"
                                         : "#ffffff",
                                   }}
@@ -908,16 +1046,23 @@ const BookYourStayPage = () => {
                             <span>Looks good, book stay </span>
                             <i className="bi bi-arrow-right ms-2 "></i>
                           </button>
-                          {validationErrors.checkOutDate && activeRoomId === room.id && (
-                            <p className="text-danger text-center mt-2">
-                              {validationErrors.checkOutDate}
-                            </p>
-                          )}
-                          {validationErrors.checkInDate && activeRoomId === room.id && (
-                            <p className="text-danger" style={{
-                              textAlign: "center"
-                            }}>{validationErrors.checkInDate}</p>
-                          )}
+                          {validationErrors.checkOutDate &&
+                            activeRoomId === room.id && (
+                              <p className="text-danger text-center mt-2">
+                                {validationErrors.checkOutDate}
+                              </p>
+                            )}
+                          {validationErrors.checkInDate &&
+                            activeRoomId === room.id && (
+                              <p
+                                className="text-danger"
+                                style={{
+                                  textAlign: "center",
+                                }}
+                              >
+                                {validationErrors.checkInDate}
+                              </p>
+                            )}
                         </div>
                       </div>
                     </div>

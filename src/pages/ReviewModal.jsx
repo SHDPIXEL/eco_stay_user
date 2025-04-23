@@ -111,17 +111,17 @@ const ReviewModal = (props) => {
                               Number of cottage(s):{" "}
                               <span>{selectedCottages}</span>
                             </p>
-                            <p>
+                            {/* <p>
                               Type of package:{" "}
                               <span>{selectedPackage?.name}</span>
-                            </p>
+                            </p> */}
                             <p>
                               Type of occupancy: <span>{occupancyType}</span>
                             </p>
                           </div>
                           <div className="rightpackD">
                           <h6><span className="textdis">₹ {(newPrice).toFixed(2)}</span> ₹ {basePrice.toFixed(2)}/room/per night</h6>
-                            <h6>₹ {packagePrice?.toFixed(2)}/package</h6>
+                            {/* <h6>₹ {packagePrice?.toFixed(2)}/package</h6> */}
                             <h6>Total Price : ₹ {pricePerNight.toFixed(2)} * {selectedCottages} Cottage</h6>
                           </div>
                         </div>

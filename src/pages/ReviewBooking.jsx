@@ -5,7 +5,6 @@ import { differenceInDays } from "date-fns";
 import API, { BASE_URL } from "../api";
 import PolicyTabs from "../components/PolicyTabs";
 
-
 const ReviewBooking = () => {
   const navigate = useNavigate();
   const [offers, setOffers] = useState(0);
@@ -17,15 +16,16 @@ const ReviewBooking = () => {
     if (!location.state) {
       navigate("/book-your-stay");
     }
-  }, [location.state, navigate])
-
+  }, [location.state, navigate]);
 
   useEffect(() => {
     const fetchAgentData = async () => {
       try {
         const response = await API.post("/auth/agent/agent-data");
         if (userType === "agent") {
-          const agentOffer = response.data.offers ? Number(response.data.offers) : 0;
+          const agentOffer = response.data.offers
+            ? Number(response.data.offers)
+            : 0;
           setOffers(agentOffer);
           console.log("Agent Offer (Discount %):", agentOffer);
         }
@@ -36,8 +36,6 @@ const ReviewBooking = () => {
 
     if (userType === "agent") fetchAgentData();
   }, [userType]);
-
-
 
   if (!location.state) {
     return null;
@@ -51,23 +49,24 @@ const ReviewBooking = () => {
     selectedPackage,
     selectedCottages,
     selectedRoomImage,
+    dayWiseBookingData,
   } = location.state;
 
   // Format the dates as needed (optional)
   const formattedCheckInDate = checkInDate
     ? new Date(checkInDate).toLocaleDateString("en-US", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-    })
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+      })
     : "Not Selected";
 
   const formattedCheckOutDate = checkOutDate
     ? new Date(checkOutDate).toLocaleDateString("en-US", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-    })
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+      })
     : "Not Selected";
 
   // Update these variables to use the full room data
@@ -85,21 +84,38 @@ const ReviewBooking = () => {
       ? selectedRoom?.single_new_price
       : selectedOption === 2
       ? selectedRoom?.double_new_price
-      : selectedRoom?.triple_new_price
+      : selectedRoom?.triple_new_price;
 
   const basePrice =
     selectedOption === 1
       ? selectedRoom?.single_base_price
       : selectedRoom === 2
       ? selectedRoom?.double_base_price
-      :selectedRoom?.triple_base_price
+      : selectedRoom?.triple_base_price;
 
   // const packagePrice = selectedPackage?.package_price || 0;
   const packagePrice = 0;
 
+  const getAllDatesInRange = (startDate, endDate) => {
+    const dates = [];
+    let currentDate = new Date(startDate);
 
-  const totalNights = differenceInDays(new Date(checkOutDate), new Date(checkInDate));
+    while (currentDate <= new Date(endDate)) {
+      dates.push(new Date(currentDate)); // Push the current date into the array
+      currentDate.setDate(currentDate.getDate() + 1); // Increment the date by 1 day
+    }
 
+    return dates;
+  };
+
+  const insufficientCottageDates = dayWiseBookingData?.filter(
+    (day) => day.available < selectedCottages
+  );
+
+  const totalNights = differenceInDays(
+    new Date(checkOutDate),
+    new Date(checkInDate)
+  );
 
   const pricePerNight = basePrice + packagePrice;
   const newPricePerNight = newPrice + packagePrice;
@@ -108,30 +124,71 @@ const ReviewBooking = () => {
 
   console.log("newGrandTotal: ", newGrandTotal, "grandTotal: ", grandTotal);
 
+  const checkOutDateFormatted = checkOutDate
+    ? new Date(checkOutDate).toISOString().split("T")[0]
+    : null;
+
+  const dateAvailability = getAllDatesInRange(checkInDate, checkOutDate)
+    .filter((date) => {
+      const dateStr = date.toISOString().split("T")[0];
+      return dateStr !== checkOutDateFormatted; // ✅ compare with correctly formatted string
+    })
+    .map((date) => {
+      const formatted = date.toISOString().split("T")[0];
+      const found = dayWiseBookingData?.find((d) => d.date === formatted);
+      const available = found ? found.available : selectedCottages;
+      const pricePerNightForThisDate = available * pricePerNight;
+
+      return {
+        date,
+        available,
+        pricePerNightForThisDate,
+      };
+    });
+
+  console.log("has dateavailbility:", dateAvailability);
+
+  const effectiveDates = dateAvailability.filter(
+    (d) => d.date.toISOString().split("T")[0] !== checkOutDate
+  );
+
+  console.log("has effective effective dates:", effectiveDates);
+
+  const hasMismatch = effectiveDates.some(
+    (d) => d.available !== selectedCottages
+  );
+
+  console.log("hasmismatched on reveiwbooking :", hasMismatch);
+
   // const discountPrice = newGrandTotal - grandTotal;
   // let discountPrice = Math.abs(newGrandTotal - grandTotal);
   let discountPrice = 0;
   if (newGrandTotal < grandTotal) discountPrice = 0;
 
-  const discountPercentage = grandTotal && newGrandTotal && newGrandTotal > grandTotal
-    ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
-    : 0;
-
+  const discountPercentage =
+    grandTotal && newGrandTotal && newGrandTotal > grandTotal
+      ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
+      : 0;
 
   // const agentDiscountAmount = (grandTotal * agentDiscountPercentage) / 100;
   const agentDiscountAmount = 0;
-  const finalTotalAfterAgentDiscount = grandTotal - 0;
 
+  // Calculate subtotal based on actual nightly availability
+  const subtotal = hasMismatch
+    ? effectiveDates.reduce(
+        (acc, curr) => acc + curr.pricePerNightForThisDate,
+        0
+      )
+    : pricePerNight * totalNights * selectedCottages;
+  const finalTotalAfterAgentDiscount = subtotal; // if no discount, else apply your logic
 
   // Calculate GST based on amount
   const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
   const gstAmount = finalTotalAfterAgentDiscount * gstRate;
   const finalAmount = finalTotalAfterAgentDiscount + gstAmount;
 
-
-
-
   const handlePayAndBook = () => {
+    console.log("hasMismatch before navigating:", hasMismatch);
     navigate("/checkout", {
       state: {
         checkInDate,
@@ -158,8 +215,12 @@ const ReviewBooking = () => {
         discountPrice,
         formattedCheckInDate,
         newPrice,
-        formattedCheckOutDate
-      }
+        formattedCheckOutDate,
+        dateAvailability, // ✅ Send this for nightly breakdown
+        hasMismatch, // ✅ To conditionally render breakdown
+        effectiveDates, // ✅ Same filtered list used in ReviewBooking
+        finalTotalAfterAgentDiscount, // ✅ Needed for correct GST recalculation if needed
+      },
     });
   };
 
@@ -216,8 +277,10 @@ const ReviewBooking = () => {
               <div className="mt-3 reviewbookigbox">
                 <div className="d-flex w-100">
                   <div className="imgd">
-                    <img src={`${BASE_URL}/assets/images/${selectedRoomImage}`}
-                      alt="" />
+                    <img
+                      src={`${BASE_URL}/assets/images/${selectedRoomImage}`}
+                      alt=""
+                    />
                   </div>
                   <div className="packDetails">
                     <div>
@@ -241,16 +304,51 @@ const ReviewBooking = () => {
                           <p>
                             Type of occupancy: <span>{occupancyType}</span>
                           </p>
+                          <p className="mt-2 mb-1 fw-bold">
+                            Per Day Availability:
+                          </p>
+                          <ul className="mb-0">
+                            {dateAvailability.map((d, idx) => (
+                              <li key={idx}>
+                                {d.date.toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  day: "2-digit",
+                                  month: "short",
+                                })}
+                                :{" "}
+                                <span
+                                  style={{
+                                    color: insufficientCottageDates.some(
+                                      (insufficient) =>
+                                        insufficient.date ===
+                                        d.date.toISOString().split("T")[0]
+                                    )
+                                      ? "red"
+                                      : "black",
+                                  }}
+                                >
+                                  {d.available} cottage(s) available
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                         <div className="rightpackD">
-                          <h6><span className="textdis">₹ {(newPrice).toFixed(2)}</span> ₹ {basePrice.toFixed(2)}/room/per night</h6>
+                          <h6>
+                            <span className="textdis">
+                              ₹ {newPrice.toFixed(2)}
+                            </span>{" "}
+                            ₹ {basePrice.toFixed(2)}/room/per night
+                          </h6>
                           {/* <h6>₹ {packagePrice.toFixed(2)}/package</h6> */}
                           <h6
-                          style={{
-                            paddingTop: "14px"
-                          }}
-                          >Total Price : ₹ {pricePerNight.toFixed(2)} * {selectedCottages} Cottage</h6>
-
+                            style={{
+                              paddingTop: "14px",
+                            }}
+                          >
+                            Total Price : ₹ {pricePerNight.toFixed(2)} *{" "}
+                            {selectedCottages} Cottage
+                          </h6>
                         </div>
                       </div>
                     </div>
@@ -289,22 +387,61 @@ const ReviewBooking = () => {
             </div>
 
             <PolicyTabs />
-
           </div>
           <div className="col-md-4">
             <div className="PriceBox w-100 position-sticky">
-
               <div className="SubPriceBox">
                 <h3 className="text-color">Price Breakup</h3>
                 <hr />
 
-                <div className="roomcaldiv">
-                  <div className="leftRoomPrice">
-                    <h5>{selectedCottages} Cottage X {totalNights} Nights</h5>
-                    <p style={{ textTransform: "capitalize" }}>({selectedRoom?.room_name} {selectedPackage?.name})</p>
+                {hasMismatch ? (
+                  // Show day-wise breakdown if there's any mismatch in available cottages
+                  effectiveDates.map((dateData, index) => {
+                    const { date, available, pricePerNightForThisDate } =
+                      dateData;
+
+                    return (
+                      <div key={index} className="roomcaldiv">
+                        <div className="leftRoomPrice">
+                          <h5>
+                            {available} Cottage{available > 1 ? "s" : ""} X 1
+                            Night
+                          </h5>
+                          <p style={{ textTransform: "capitalize" }}>
+                            {date.toLocaleDateString("en-US", {
+                              weekday: "short",
+                              day: "2-digit",
+                              month: "short",
+                            })}
+                          </p>
+                        </div>
+                        <div className="rightRoomPrice">
+                          ₹ {pricePerNightForThisDate.toFixed(2)}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Show single summary line if availability matches selected cottages every night
+                  <div className="roomcaldiv">
+                    <div className="leftRoomPrice">
+                      <h5>
+                        {selectedCottages} Cottage
+                        {selectedCottages > 1 ? "s" : ""} X{" "}
+                        {effectiveDates.length} Night
+                        {effectiveDates.length > 1 ? "s" : ""}
+                      </h5>
+                    </div>
+                    <div className="rightRoomPrice">
+                      ₹{" "}
+                      {(
+                        selectedCottages *
+                        pricePerNight *
+                        effectiveDates.length
+                      ).toFixed(2)}
+                    </div>
                   </div>
-                  <div className="rightRoomPrice">₹ {newGrandTotal.toFixed(2)}</div>
-                </div>
+                )}
 
                 {/* Existing Discount */}
                 {/* <div className="TotalDiscountDiv">
@@ -322,11 +459,19 @@ const ReviewBooking = () => {
                   <div className="TotalDiscountDiv">
                     <div className="leftTotalDiscount text-color">
                       <h5>
-                        Agent Discount <i className="bi bi-info-circle h6" onClick={() => alert(`${agentDiscountPercentage}% Off`)}
-                          style={{ cursor: 'pointer' }}></i>
+                        Agent Discount{" "}
+                        <i
+                          className="bi bi-info-circle h6"
+                          onClick={() =>
+                            alert(`${agentDiscountPercentage}% Off`)
+                          }
+                          style={{ cursor: "pointer" }}
+                        ></i>
                       </h5>
                     </div>
-                    <div className="rightTotalDiscount text-color">₹ {agentDiscountAmount.toFixed(2)}</div>
+                    <div className="rightTotalDiscount text-color">
+                      ₹ {agentDiscountAmount.toFixed(2)}
+                    </div>
                   </div>
                 )}
 
@@ -345,8 +490,14 @@ const ReviewBooking = () => {
                       Taxes & Service Fees{" "}
                       <i
                         className="bi bi-info-circle h6"
-                        onClick={() => alert(`${gstRate * 100}% GST\nService Charges\nBooking Fees\nConvenience Fees`)}
-                        style={{ cursor: 'pointer' }}
+                        onClick={() =>
+                          alert(
+                            `${
+                              gstRate * 100
+                            }% GST\nService Charges\nBooking Fees\nConvenience Fees`
+                          )
+                        }
+                        style={{ cursor: "pointer" }}
                       ></i>
                     </h5>
                   </div>
@@ -358,14 +509,19 @@ const ReviewBooking = () => {
                   <div className="leftfinalamt text-color">
                     <h5>Total Amount to be paid</h5>
                   </div>
-                  <div className="rightfinalamt text-color">₹ {finalAmount.toFixed(2)}</div>
+                  <div className="rightfinalamt text-color">
+                    ₹ {finalAmount.toFixed(2)}
+                  </div>
                 </div>
 
-                <div className="bookcombtn booknowbtn w-100" onClick={handlePayAndBook}>
-                  Pay and book <i className="bi bi-arrow-right-short h3 m-0"></i>
+                <div
+                  className="bookcombtn booknowbtn w-100"
+                  onClick={handlePayAndBook}
+                >
+                  Pay and book{" "}
+                  <i className="bi bi-arrow-right-short h3 m-0"></i>
                 </div>
               </div>
-
 
               <div className="qualitydiv mt-3 text-center ">
                 <h6>

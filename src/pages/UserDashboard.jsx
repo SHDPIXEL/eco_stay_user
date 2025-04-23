@@ -25,12 +25,12 @@ const UserDashboard = () => {
   const [upcomingBookings, setUpcomingBookings] = useState([]);
   const [pastBookings, setPastBookings] = useState([]);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [nightlyBreakups, setNightlyBreakups] = useState(null);
   const [message, setMessage] = useState("");
 
   const handleLogout = () => {
     logout();
   };
-
 
   useEffect(() => {
     if (profileData.u_id) {
@@ -43,6 +43,7 @@ const UserDashboard = () => {
     if (selectedTab === "upcomingBookings") fetchUpcomingBookings();
     if (selectedTab === "pastBookings") fetchPastBookings();
     if (selectedTab === "paymentHistory") fetchPaymentHistory();
+    if (selectedTab === "nightlybreakup") fetchnightlybreakup();
     fetchPaymentHistory();
   }, [selectedTab, profileData.u_id]); // Add profileData.u_id as a dependency to trigger on change
 
@@ -52,7 +53,9 @@ const UserDashboard = () => {
       const bookings = response.data;
 
       // Filter bookings into upcoming and past based on status
-      const upcoming = bookings.filter((booking) => booking.status === "pending");
+      const upcoming = bookings.filter(
+        (booking) => booking.status === "pending"
+      );
       const past = bookings.filter((booking) => booking.status !== "pending");
 
       setUpcomingBookings(upcoming);
@@ -74,9 +77,10 @@ const UserDashboard = () => {
 
   const fetchPaymentHistory = async () => {
     try {
-      const endPoint = userType === 'agent'
-        ? `/payments/payment/agent/${userId}`
-        : `/payments/payment/user/${userId}`;
+      const endPoint =
+        userType === "agent"
+          ? `/payments/payment/agent/${userId}`
+          : `/payments/payment/user/${userId}`;
 
       const response = await API.get(endPoint);
       setPaymentHistory(Array.isArray(response.data) ? response.data : []);
@@ -139,20 +143,48 @@ const UserDashboard = () => {
     }
   };
 
+  const fetchnightlybreakup = async () => {
+    try {
+      const endPoint =
+        userType === "agent"
+          ? `/bookings/booking-details/agent/${userId}`
+          : `/bookings/booking-details/user/${userId}`;
 
+      const response = await API.get(endPoint);
+
+      console.log("Response data:", response.data);
+
+      // Iterate over the response data (which contains multiple bookings)
+      const breakups = response.data.map((booking) => {
+        return {
+          bookingId: booking.booking_id, // Extract booking_id
+          nightlyBreakups: booking.nightly_breakup, // Extract nightly_breakup
+        };
+      });
+
+      console.log("Nightly Breakups for All Bookings:", breakups);
+
+      // Set all the breakups data to the state
+      setNightlyBreakups(breakups);
+    } catch (error) {
+      console.error("Error fetching nightly breakup:", error);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
       // Assuming your API route expects a `u_id` to fetch user data;
-      const endPoint = userType === "agent" ? "/auth/agent/agent-data" : "/auth/user/user-data"
+      const endPoint =
+        userType === "agent"
+          ? "/auth/agent/agent-data"
+          : "/auth/user/user-data";
       const response = await API.post(endPoint); // Fetch based on u_id
       setProfileData(response.data);
-      setUserId(response.data.id)
+      setUserId(response.data.id);
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
-
 
   const handleProfileUpdate = (e) => {
     e.preventDefault();
@@ -424,9 +456,7 @@ const UserDashboard = () => {
               <th>Check IN</th>
               <th>Check-Out </th>
               <th>Status</th>
-              {
-                userType === "agent" ? <th>Phone</th> : ""
-              }
+              {userType === "agent" ? <th>Phone</th> : ""}
               <th>Amount(Rs)</th>
             </tr>
           </thead>
@@ -445,12 +475,16 @@ const UserDashboard = () => {
                   <td>{booking.booking_id}</td>
                   <td>{booking.checkInDate}</td>
                   <td>{booking.checkOutDate}</td>
-                  <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
+                  <td
+                    className={
+                      booking.status === "confirmed"
+                        ? "status-confirmed"
+                        : "status-not-confirmed"
+                    }
+                  >
                     {booking.status}
                   </td>
-                  {
-                    userType === "agent" ? <td>{booking.customerPhone}</td> : ""
-                  }
+                  {userType === "agent" ? <td>{booking.customerPhone}</td> : ""}
                   <td>{booking.amount}</td>
                 </tr>
               ))
@@ -482,9 +516,7 @@ const UserDashboard = () => {
               <th>Check IN</th>
               <th>Check-Out </th>
               <th>Status</th>
-              {
-                userType === "agent" ? <th>Phone</th> : ""
-              }
+              {userType === "agent" ? <th>Phone</th> : ""}
               <th>Amount(Rs)</th>
             </tr>
           </thead>
@@ -503,12 +535,16 @@ const UserDashboard = () => {
                   <td>{booking.booking_id}</td>
                   <td>{booking.checkInDate}</td>
                   <td>{booking.checkOutDate}</td>
-                  <td className={booking.status === "confirmed" ? "status-confirmed" : "status-not-confirmed"}>
+                  <td
+                    className={
+                      booking.status === "confirmed"
+                        ? "status-confirmed"
+                        : "status-not-confirmed"
+                    }
+                  >
                     {booking.status}
                   </td>
-                  {
-                    userType === "agent" ? <td>{booking.customerPhone}</td> : ""
-                  }
+                  {userType === "agent" ? <td>{booking.customerPhone}</td> : ""}
                   <td>{booking.amount}</td>
                 </tr>
               ))
@@ -557,10 +593,88 @@ const UserDashboard = () => {
                   <td>{payment.orderId}</td>
                   <td>{payment.amount}</td>
                   {/* <td>{payment.paymentDate}</td> */}
-                  <td>{new Date(payment.paymentDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })}</td>
-                  <td className={payment.status === "success" ? "status-confirmed" : "status-not-confirmed"}>{payment.status}</td>
+                  <td>
+                    {new Date(payment.paymentDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "2-digit",
+                    })}
+                  </td>
+                  <td
+                    className={
+                      payment.status === "success"
+                        ? "status-confirmed"
+                        : "status-not-confirmed"
+                    }
+                  >
+                    {payment.status}
+                  </td>
                 </tr>
               ))
+            )}
+          </tbody>
+        </Table>
+      </>
+    ),
+    nightlybreakup: (
+      <>
+        <span
+          style={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            marginBottom: "20px",
+            display: "block",
+            color: "#806a50",
+            justifyContent: "center",
+          }}
+        >
+          Nightly BreakUp of Cottages
+        </span>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Booking Id</th>
+              <th>Details</th>
+              <th>Amount (Rs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nightlyBreakups && nightlyBreakups.length === 0 ? (
+              <tr>
+                <td colSpan="3" style={{ textAlign: "center" }}>
+                  No nightly breakup found
+                </td>
+              </tr>
+            ) : (
+              (nightlyBreakups || []).map((breakup, index) => {
+                return breakup.nightlyBreakups.map((details, idx) => {
+                  const [cottageInfo, dateInfo, amountInfo] =
+                    details.split("\n");
+
+                  const numberOfCottages = cottageInfo.split(" ")[0];
+                  const nightInfo = cottageInfo.split("X")[1]?.trim();
+                  const date = dateInfo.split("(")[0]?.trim();
+                  const amount = amountInfo?.trim();
+
+                  return (
+                    <tr key={`${breakup.bookingId}-${idx}`}>
+                      {idx === 0 && (
+                        <td
+                          rowSpan={breakup.nightlyBreakups.length}
+                          style={{
+                            verticalAlign: "middle",
+                            textAlign: "center",
+                          }}
+                        >
+                          {breakup.bookingId}
+                        </td>
+                      )}
+                      <td>{`${numberOfCottages} Cottages, ${nightInfo}, Date: ${date}`}</td>
+                      <td>{amount}</td>
+                    </tr>
+                  );
+                });
+              })
             )}
           </tbody>
         </Table>
@@ -572,13 +686,12 @@ const UserDashboard = () => {
     <>
       <section className="userpanel">
         <div className="container-fluid mt-5 mb-4">
-
           <div className="logout-btn-container">
-            {
-              userType === "agent" ? <div className="agent-title">
-                Agent Login
-              </div> : <div></div>
-            }
+            {userType === "agent" ? (
+              <div className="agent-title">Agent Login</div>
+            ) : (
+              <div></div>
+            )}
             <Nav.Link
               to="/login"
               onClick={handleLogout}
@@ -634,6 +747,14 @@ const UserDashboard = () => {
                       onClick={() => setSelectedTab("paymentHistory")}
                     >
                       Payment History
+                    </Button>
+                  </li>
+                  <li>
+                    <Button
+                      className="user-menu-btn w-100 text-start"
+                      onClick={() => setSelectedTab("nightlybreakup")}
+                    >
+                      Nightly BreakUp of Cottages
                     </Button>
                   </li>
                 </ul>

@@ -8,8 +8,6 @@ import API from "../api";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 
-
-
 const Checkouts = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showVerify, setShowVerify] = useState(false);
@@ -36,7 +34,6 @@ const Checkouts = () => {
     pincode: "",
   });
 
-
   const [idProofFile, setIdProofFile] = useState(null);
   const [isDisable, setIsDisable] = useState(true);
   const [isChecked, setIsChecked] = useState(false);
@@ -62,7 +59,6 @@ const Checkouts = () => {
     });
   }
 
-
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser.");
@@ -83,7 +79,8 @@ const Checkouts = () => {
           );
 
           if (response.data && response.data.address) {
-            const { road, city, state, country, postcode } = response.data.address;
+            const { road, city, state, country, postcode } =
+              response.data.address;
             const fullAddress = response.data.display_name;
 
             // Updating form fields dynamically
@@ -109,7 +106,9 @@ const Checkouts = () => {
       },
       (error) => {
         console.error("Error getting location:", error);
-        alert("Unable to retrieve location. Make sure location services are enabled.");
+        alert(
+          "Unable to retrieve location. Make sure location services are enabled."
+        );
         setLoadingLocation(false);
       },
       {
@@ -119,9 +118,6 @@ const Checkouts = () => {
       }
     );
   };
-
-
-
 
   const handleCheckboxChange = (e) => {
     setIsChecked(e.target.checked);
@@ -161,8 +157,6 @@ const Checkouts = () => {
     return () => clearInterval(interval);
   }, [showVerify, timer]);
 
-
-
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -200,8 +194,6 @@ const Checkouts = () => {
     }
   }, [isAuthenticated, authToken]);
 
-
-
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -228,12 +220,11 @@ const Checkouts = () => {
     }
   };
 
-
   useEffect(() => {
     if (!location.state) {
       navigate("/book-your-stay");
     }
-  }, [location.state, navigate])
+  }, [location.state, navigate]);
 
   if (!location.state) {
     return null;
@@ -265,7 +256,14 @@ const Checkouts = () => {
     newPrice,
     formattedCheckInDate,
     formattedCheckOutDate,
+    dateAvailability, // ✅ Send this for nightly breakdown
+    hasMismatch, // ✅ To conditionally render breakdown
+    effectiveDates, // ✅ Same filtered list used in ReviewBooking
+    finalTotalAfterAgentDiscount, // ✅ Needed for correct GST recalculation if needed
   } = location.state || {};
+
+  console.log("hasMismatch on Checkout page:", hasMismatch);
+  console.log("location.state on Checkout page:", location.state);
 
   // Redirect if any required data is missing
 
@@ -332,11 +330,11 @@ const Checkouts = () => {
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    setIsOtpLoading(true)
+    setIsOtpLoading(true);
 
     if (otpExpired) {
       setErrorMessage("OTP has expired. Please request a new one.");
-      setIsOtpLoading(false)
+      setIsOtpLoading(false);
       return;
     }
     try {
@@ -353,9 +351,9 @@ const Checkouts = () => {
         const token = response.data.token;
         login(token);
         setProfileData(response.data.user);
-        console.log("use data on login", response.data)
+        console.log("use data on login", response.data);
         setOtpVerifiedMessage("OTP Verified successfully!");
-        setIsOtpLoading(false)
+        setIsOtpLoading(false);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
@@ -363,10 +361,9 @@ const Checkouts = () => {
         submit: error.response?.data || "Error verifying OTP " + error.message,
       });
     } finally {
-      setIsOtpLoading(false)
+      setIsOtpLoading(false);
     }
   };
-
 
   const handleProceed = () => {
     const userType = localStorage.getItem("type");
@@ -389,7 +386,7 @@ const Checkouts = () => {
     const { idProof, ...restProfileData } = profileData;
 
     const values = Object.values(restProfileData);
-    console.log("values of the object", values)
+    console.log("values of the object", values);
     const isValid = values.every((value) => value && value.trim() !== "");
 
     if (isValid) {
@@ -399,14 +396,27 @@ const Checkouts = () => {
     }
   };
 
-
   const openReviewModal = () => {
     setReviewModalshow(true);
     document.body.style.overflow = "hidden";
   };
 
-  async function payment_init(e) {
+  const formattedBreakup =
+    dateAvailability?.map(({ date, available, pricePerNightForThisDate }) => {
+      const formattedDate = new Date(date).toLocaleDateString("en-US", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+      });
 
+      return `${available} Cottage${
+        available !== 1 ? "s" : ""
+      } X 1 Night\n${formattedDate} (${
+        selectedRoom?.room_name
+      })\n₹ ${pricePerNightForThisDate.toFixed(2)}`;
+    }) || [];
+
+  async function payment_init(e) {
     e.preventDefault();
 
     if (!isChecked) {
@@ -443,51 +453,56 @@ const Checkouts = () => {
     //   grand_total: grandTotal
     // });
 
-
     const userType = localStorage.getItem("type");
     const bookingPayload =
-      userType === "agent" ?
-        {
-          amt: parseInt(finalAmount),
-          currency: "INR",
-          checkInDate,
-          checkOutDate,
-          roomType: roomName + '_' + roomId,
-          number_of_cottages: selectedCottages,
-          // selected_packages: selectedPackage.name,
-          selected_occupancy: occupancyType,
-          base_price: basePrice,
-          // package_price: packagePrice,
-          total_nights: totalNights,
-          price_per_night: pricePerNight,
-          grand_total: grandTotal,
-          u_id: profileData.u_id,
-          name: profileData.name,
-          email: profileData.email,
-          phone: profileData.phone,
-          address: profileData.address,
-          city: profileData.city,
-          state: profileData.state,
-          country: profileData.country,
-          pincode: profileData.pincode,
-        } : {
-          amt: parseInt(finalAmount),
-          currency: "INR",
-          checkInDate,
-          checkOutDate,
-          roomType: roomName + '_' + roomId,
-          number_of_cottages: selectedCottages,
-          // selected_packages: selectedPackage.name,
-          selected_occupancy: occupancyType,
-          base_price: basePrice,
-          // package_price: packagePrice,
-          total_nights: totalNights,
-          price_per_night: pricePerNight,
-          grand_total: grandTotal,
-        }
+      userType === "agent"
+        ? {
+            amt: parseInt(finalAmount),
+            currency: "INR",
+            checkInDate,
+            checkOutDate,
+            roomType: roomName + "_" + roomId,
+            number_of_cottages: selectedCottages,
+            // selected_packages: selectedPackage.name,
+            selected_occupancy: occupancyType,
+            base_price: basePrice,
+            // package_price: packagePrice,
+            total_nights: totalNights,
+            price_per_night: pricePerNight,
+            grand_total: grandTotal,
+            u_id: profileData.u_id,
+            name: profileData.name,
+            email: profileData.email,
+            phone: profileData.phone,
+            address: profileData.address,
+            city: profileData.city,
+            state: profileData.state,
+            country: profileData.country,
+            pincode: profileData.pincode,
+            nightly_breakup: formattedBreakup, // ✅ Always included now
+          }
+        : {
+            amt: parseInt(finalAmount),
+            currency: "INR",
+            checkInDate,
+            checkOutDate,
+            roomType: roomName + "_" + roomId,
+            number_of_cottages: selectedCottages,
+            // selected_packages: selectedPackage.name,
+            selected_occupancy: occupancyType,
+            base_price: basePrice,
+            // package_price: packagePrice,
+            total_nights: totalNights,
+            price_per_night: pricePerNight,
+            grand_total: grandTotal,
+            nightly_breakup: formattedBreakup, // ✅ Always included now
+          };
 
     try {
-      const result = await API.post("/auth/user/booking/orders", bookingPayload);
+      const result = await API.post(
+        "/auth/user/booking/orders",
+        bookingPayload
+      );
 
       if (!result) {
         alert("Server error. Are you online?");
@@ -519,29 +534,26 @@ const Checkouts = () => {
           // console.log(result.data);
           // alert(result.data.msg);
           // console.log("pament success check", result.data.msg)
-          // navigate("/thankyou")        
+          // navigate("/thankyou")
           if (result.data.paymentDetails.status === "success") {
-            const bookingIdStr = String(result.data.bookingId);  // Ensure booking_id is a string
+            const bookingIdStr = String(result.data.bookingId); // Ensure booking_id is a string
 
             // Get current date and time
             const currentDate = new Date();
-            const epochTime = currentDate.getTime();  // Get the current time in epoch format (milliseconds)
+            const epochTime = currentDate.getTime(); // Get the current time in epoch format (milliseconds)
 
             // Combine booking_id, current date/time, and epoch time
             const combinedString = `${bookingIdStr}-${currentDate.toISOString()}-${epochTime}`;
 
             // Encode the combined string
-            const encodedBookingId = btoa(combinedString);  // Base64 encode the string
+            const encodedBookingId = btoa(combinedString); // Base64 encode the string
 
             navigate(`/thankyou?id=${encodedBookingId}`, {
               state: {
                 paymentDetails: result.data.paymentDetails,
               },
             });
-
-          } else navigate('/');
-
-
+          } else navigate("/");
         },
         prefill: {
           name: profileData.name,
@@ -558,7 +570,6 @@ const Checkouts = () => {
 
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
-
     } catch (error) {
       alert("Something went wrong. Please try again.");
       console.error("Error processing payment:", error);
@@ -746,10 +757,16 @@ const Checkouts = () => {
                                 placeholder="Enter your complete address"
                                 isInvalid={!!formErrors.address}
                                 value={formData.address} // Auto-filled value
-                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    address: e.target.value,
+                                  })
+                                }
                               />
                               <span className="loacte" onClick={handleLocateMe}>
-                                <i className="bi bi-geo-alt-fill"></i> {loadingLocation ? "Locating..." : "Locate Me"}
+                                <i className="bi bi-geo-alt-fill"></i>{" "}
+                                {loadingLocation ? "Locating..." : "Locate Me"}
                               </span>
                             </div>
                             <Form.Control.Feedback type="invalid">
@@ -776,7 +793,12 @@ const Checkouts = () => {
                               placeholder="Enter City"
                               isInvalid={!!formErrors.city}
                               value={formData.city} // Auto-filled value
-                              onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  city: e.target.value,
+                                })
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.city}
@@ -797,7 +819,12 @@ const Checkouts = () => {
                               placeholder="Enter State"
                               isInvalid={!!formErrors.state}
                               value={formData.state} // Auto-filled value
-                              onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  state: e.target.value,
+                                })
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.state}
@@ -821,7 +848,12 @@ const Checkouts = () => {
                               placeholder="Enter Country"
                               isInvalid={!!formErrors.country}
                               value={formData.country} // Auto-filled value
-                              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  country: e.target.value,
+                                })
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.country}
@@ -843,7 +875,12 @@ const Checkouts = () => {
                               placeholder="Enter your PIN Code"
                               isInvalid={!!formErrors.pincode}
                               value={formData.pincode} // Auto-filled value
-                              onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  pincode: e.target.value,
+                                })
+                              }
                             />
                             <Form.Control.Feedback type="invalid">
                               {formErrors.pincode}
@@ -911,7 +948,6 @@ const Checkouts = () => {
                           type="submit"
                         >
                           Proceed with these details
-
                         </Button>
                       </div>
                     </div>
@@ -924,7 +960,8 @@ const Checkouts = () => {
                       <div className="col-md-12">
                         <p>
                           Verify your mobile number using OTP. We have sent an
-                          SMS with 6-digits OTP on your mobile number +91 {phoneNumber}
+                          SMS with 6-digits OTP on your mobile number +91{" "}
+                          {phoneNumber}
                         </p>
                         <p>Time remaining: {formatTime(timer)}</p>
                       </div>
@@ -961,7 +998,6 @@ const Checkouts = () => {
                               ) : (
                                 "Verify OTP"
                               )}
-
                             </Button>
                             {(otpExpired || formErrors.submit) && (
                               <Button
@@ -1008,7 +1044,12 @@ const Checkouts = () => {
                               placeholder="Enter Your Name"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} // Handle input change
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  name: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1031,7 +1072,10 @@ const Checkouts = () => {
                               disabled={isDisable}
                               onChange={(e) => {
                                 const input = e.target.value.slice(0, 10);
-                                setProfileData({ ...profileData, phone: input });
+                                setProfileData({
+                                  ...profileData,
+                                  phone: input,
+                                });
                               }}
                               readOnly={isDisable}
                               required
@@ -1058,8 +1102,12 @@ const Checkouts = () => {
                               placeholder="Enter Your Address"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, address: e.target.value })} // Handle input change
-
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  address: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1081,7 +1129,12 @@ const Checkouts = () => {
                               placeholder="Enter Your Email"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} // Handle input change
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  email: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1106,7 +1159,12 @@ const Checkouts = () => {
                               placeholder="Enter Your City"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, city: e.target.value })} // Handle input change
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  city: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1129,7 +1187,12 @@ const Checkouts = () => {
                               placeholder="Enter Your State"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, state: e.target.value })} // Handle input change     
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  state: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1152,7 +1215,12 @@ const Checkouts = () => {
                               placeholder="Enter Your Country"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, country: e.target.value })} // Handle input change
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  country: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1175,7 +1243,12 @@ const Checkouts = () => {
                               placeholder="Enter Your Pincode"
                               disabled={isDisable}
                               required
-                              onChange={(e) => setProfileData({ ...profileData, pincode: e.target.value })} // Handle input change
+                              onChange={(e) =>
+                                setProfileData({
+                                  ...profileData,
+                                  pincode: e.target.value,
+                                })
+                              } // Handle input change
                             />
                           </Form.Group>
                         </Col>
@@ -1246,7 +1319,7 @@ const Checkouts = () => {
                       <button
                         className="bookcombtn booknowbtn w-100"
                         onClick={payment_init}
-                      // disabled={!isChecked}
+                        // disabled={!isChecked}
                       >
                         {loading ? (
                           <>
@@ -1259,11 +1332,16 @@ const Checkouts = () => {
                       </button>
 
                       {errorMessage && (
-                        <p style={{ color: "red", marginTop: "5px", textAlign: "center" }}>
+                        <p
+                          style={{
+                            color: "red",
+                            marginTop: "5px",
+                            textAlign: "center",
+                          }}
+                        >
                           {errorMessage}
                         </p>
                       )}
-
                     </div>
                     <div className="col-md-2 mt-3 col-12 ">
                       <img src={trustimg} alt="" className="imgtrust" />
@@ -1278,21 +1356,51 @@ const Checkouts = () => {
               <div className="SubPriceBox">
                 <h3 className="text-color">Price Breakup</h3>
                 <hr />
-                <div className="roomcaldiv">
-                  <div className="leftRoomPrice">
-                    <h5>
-                      {selectedCottages} Cottage X {totalNights} Nights
-                    </h5>
-                    <p style={{ textTransform: "capitalize" }}>
-                      ({selectedRoom?.room_name}
-                      {/* {selectedPackage?.name} */}
-                      )
-                    </p>
+                {hasMismatch ? (
+                  <>
+                    {effectiveDates.map((dateData, index) => {
+                      const { date, available, pricePerNightForThisDate } =
+                        dateData;
+
+                      return (
+                        <div key={index} className="roomcaldiv">
+                          <div className="leftRoomPrice">
+                            <h5>
+                              {available} Cottage{available > 1 ? "s" : ""} X 1
+                              Night
+                            </h5>
+                            <p style={{ textTransform: "capitalize" }}>
+                              {new Date(date).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                day: "2-digit",
+                                month: "short",
+                              })}{" "}
+                              ({selectedRoom?.room_name})
+                            </p>
+                          </div>
+                          <div className="rightRoomPrice">
+                            ₹ {pricePerNightForThisDate.toFixed(2)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <div className="roomcaldiv">
+                    <div className="leftRoomPrice">
+                      <h5>
+                        {selectedCottages} Cottage X {totalNights} Night
+                        {totalNights > 1 ? "s" : ""}
+                      </h5>
+                      <p style={{ textTransform: "capitalize" }}>
+                        ({selectedRoom?.room_name})
+                      </p>
+                    </div>
+                    <div className="rightRoomPrice">
+                      ₹ {newGrandTotal.toFixed(2)}
+                    </div>
                   </div>
-                  <div className="rightRoomPrice">
-                    ₹ {newGrandTotal.toFixed(2)}
-                  </div>
-                </div>
+                )}
 
                 <div className="TotalDiscountDiv">
                   <div className="leftTotalDiscount text-color">
@@ -1316,7 +1424,7 @@ const Checkouts = () => {
                     <h5>Price after Discount</h5>
                   </div>
                   <div className="rightPriceafter">
-                    ₹ {grandTotal.toFixed(2)}
+                    ₹ {finalTotalAfterAgentDiscount.toFixed(2)}
                   </div>
                 </div>
                 <hr />
@@ -1328,7 +1436,8 @@ const Checkouts = () => {
                         className="bi bi-info-circle h6"
                         onClick={() =>
                           alert(
-                            `${gstRate * 100
+                            `${
+                              gstRate * 100
                             }% GST\nService Charges\nBooking Fees\nConvenience Fees`
                           )
                         }
