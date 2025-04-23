@@ -426,14 +426,14 @@ const Home = () => {
 
                 </section>
 
-                <div id="testimonial">
+                {/* <div id="testimonial">
                     <ReviewSlider />
-                </div>
+                </div> */}
 
             </div>
-            <div id="contact">
+            {/* <div id="contact">
                 <ContactSection />
-            </div>
+            </div> */}
             <MainFooter />
             <LoginModal setLoginModalshow={setLoginModalshow} loginModalshow={loginModalshow} />
 
