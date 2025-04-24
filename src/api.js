@@ -3,7 +3,7 @@ import axios from "axios";
 // Base URL for the API
 
 export const BASE_URL = "https://ecostay.viryawildlifetours.com/api";
-// export const BASE_URL = "http://192.168.1.9:3030";
+ //export const BASE_URL = "http://192.168.1.9:3030";
 
 
 // Create an Axios instance

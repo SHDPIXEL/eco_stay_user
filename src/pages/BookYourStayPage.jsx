@@ -216,9 +216,24 @@ const BookYourStayPage = () => {
     if (!roomData || !packagesData) return [];
 
     return roomData.map((room) => {
-      const roomPackages = room.package_ids.map((packageId) => {
-        return packagesData.find((pkg) => pkg.id === packageId);
-      });
+      let packageIds = room.package_ids;
+
+      // Parse if it's a string
+      if (typeof packageIds === "string") {
+        try {
+          packageIds = JSON.parse(packageIds);
+        } catch (e) {
+          console.error("Invalid JSON in package_ids:", room.package_ids);
+          packageIds = [];
+        }
+      }
+
+      const roomPackages = Array.isArray(packageIds)
+        ? packageIds.map((packageId) =>
+            packagesData.find((pkg) => pkg.id === packageId)
+          )
+        : [];
+
       return {
         ...room,
         packages: roomPackages,
@@ -338,7 +353,7 @@ const BookYourStayPage = () => {
             ? selectedRoom.double_base_price
             : selectedRoom.triple_base_price;
 
-        console.log("prices",pricePerCottage);    
+        console.log("prices", pricePerCottage);
 
         let priceForDay = available * selectedCottages * pricePerCottage; // Replace with your price calculation logic
 
@@ -683,6 +698,7 @@ const BookYourStayPage = () => {
                   ? "Double Occupancy"
                   : "Single Occupancy",
               priceKey: "single_base_price",
+              price: room.single_base_price,
               cottages: 1,
             },
             {
@@ -692,6 +708,7 @@ const BookYourStayPage = () => {
                   ? "Quadruple Occupancy"
                   : "Double Occupancy",
               priceKey: "double_base_price",
+              price: room.double_base_price,
               cottages: 2,
             },
             {
@@ -701,9 +718,10 @@ const BookYourStayPage = () => {
                   ? "Sextuple Occupancy"
                   : "Triple Occupancy",
               priceKey: "triple_base_price",
+              price: room.triple_base_price,
               cottages: 3,
             },
-          ];
+          ].filter((option) => option.price > 0); // <- Filter out 0-priced options
 
           return (
             <div
@@ -718,56 +736,71 @@ const BookYourStayPage = () => {
                   <div className="leftBookstaybox border-0">
                     <div key={index} className="slider-container">
                       {/* Default index to 0 if not set */}
-                      {JSON.parse(room.room_images).length > 0 && (
-                        <>
-                          <button
-                            className="prev"
-                            onClick={() =>
-                              setCurrentIndexes((prev) => ({
-                                ...prev,
-                                [index]:
-                                  prev[index] === 0
-                                    ? JSON.parse(room.room_images).length - 1
-                                    : prev[index] - 1,
-                              }))
-                            }
-                          >
-                            &#10094;
-                          </button>
+                      {(() => {
+                        let images = [];
 
-                          <img
-                            src={`${BASE_URL}/assets/images/${
-                              JSON.parse(room.room_images)[
-                                currentIndexes[index] || 0
-                              ]
-                            }`}
-                            alt="Room"
-                            className="slider-image rounded-img"
-                          />
+                        try {
+                          const onceParsed = JSON.parse(room.room_images);
+                          images =
+                            typeof onceParsed === "string"
+                              ? JSON.parse(onceParsed)
+                              : onceParsed;
+                        } catch (err) {
+                          console.error(
+                            "Error parsing room_images:",
+                            room.room_images,
+                            err
+                          );
+                        }
 
-                          <button
-                            className="next"
-                            onClick={() =>
-                              setCurrentIndexes((prev) => ({
-                                ...prev,
-                                [index]:
-                                  prev[index] ===
-                                  JSON.parse(room.room_images).length - 1
-                                    ? 0
-                                    : (prev[index] || 0) + 1,
-                              }))
-                            }
-                          >
-                            &#10095;
-                          </button>
-                        </>
-                      )}
+                        return images.length > 0 ? (
+                          <>
+                            <button
+                              className="prev"
+                              onClick={() =>
+                                setCurrentIndexes((prev) => ({
+                                  ...prev,
+                                  [index]:
+                                    prev[index] === 0
+                                      ? images.length - 1
+                                      : prev[index] - 1,
+                                }))
+                              }
+                            >
+                              &#10094;
+                            </button>
+
+                            <img
+                              src={`${BASE_URL}/assets/images/${
+                                images[currentIndexes[index] || 0]
+                              }`}
+                              alt="Room"
+                              className="slider-image rounded-img"
+                            />
+
+                            <button
+                              className="next"
+                              onClick={() =>
+                                setCurrentIndexes((prev) => ({
+                                  ...prev,
+                                  [index]:
+                                    prev[index] === images.length - 1
+                                      ? 0
+                                      : (prev[index] || 0) + 1,
+                                }))
+                              }
+                            >
+                              &#10095;
+                            </button>
+                          </>
+                        ) : null;
+                      })()}
                     </div>
 
                     <h4 className="model-title">{room.room_name}</h4>
 
                     <ul>
-                      {room.amenities.map((a, idx) => (
+                      {JSON.parse(room.amenities).map((a, idx) => (
                         <li key={idx}>{a}</li>
                       ))}
                     </ul>
@@ -1072,9 +1105,9 @@ const BookYourStayPage = () => {
             </div>
           );
         })}
-        <ReviewSlider />
+        {/* <ReviewSlider /> */}
       </div>
-      <ContactSection />
+      {/* <ContactSection /> */}
       <MainFooter />
     </div>
   );

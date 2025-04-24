@@ -647,7 +647,19 @@ const UserDashboard = () => {
               </tr>
             ) : (
               (nightlyBreakups || []).map((breakup, index) => {
-                return breakup.nightlyBreakups.map((details, idx) => {
+                let parsedBreakups = [];
+
+                try {
+                  parsedBreakups = JSON.parse(breakup.nightlyBreakups);
+                } catch (err) {
+                  console.error(
+                    "Failed to parse nightlyBreakups",
+                    breakup.nightlyBreakups
+                  );
+                  return null;
+                }
+
+                return parsedBreakups.map((details, idx) => {
                   const [cottageInfo, dateInfo, amountInfo] =
                     details.split("\n");
 

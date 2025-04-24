@@ -79,6 +79,8 @@ const ReviewBooking = () => {
 
   const agentDiscountPercentage = userType === "agent" ? offers : 0; // Already converted to number
 
+  console.log("agent discount percentage",agentDiscountPercentage)
+
   const newPrice =
     selectedOption === 1
       ? selectedRoom?.single_new_price
@@ -170,8 +172,7 @@ const ReviewBooking = () => {
       ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
       : 0;
 
-  // const agentDiscountAmount = (grandTotal * agentDiscountPercentage) / 100;
-  const agentDiscountAmount = 0;
+  // const agentDiscountAmount = 0;
 
   // Calculate subtotal based on actual nightly availability
   const subtotal = hasMismatch
@@ -180,7 +181,10 @@ const ReviewBooking = () => {
         0
       )
     : pricePerNight * totalNights * selectedCottages;
-  const finalTotalAfterAgentDiscount = subtotal; // if no discount, else apply your logic
+  const agentDiscountAmount = (subtotal * agentDiscountPercentage) / 100;
+
+  console.log("disciouted amount",agentDiscountAmount);
+  const finalTotalAfterAgentDiscount = subtotal - agentDiscountAmount; // if no discount, else apply your logic
 
   // Calculate GST based on amount
   const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
@@ -188,7 +192,6 @@ const ReviewBooking = () => {
   const finalAmount = finalTotalAfterAgentDiscount + gstAmount;
 
   const handlePayAndBook = () => {
-    console.log("hasMismatch before navigating:", hasMismatch);
     navigate("/checkout", {
       state: {
         checkInDate,
@@ -215,6 +218,8 @@ const ReviewBooking = () => {
         discountPrice,
         formattedCheckInDate,
         newPrice,
+        agentDiscountPercentage ,
+        agentDiscountAmount,
         formattedCheckOutDate,
         dateAvailability, // ✅ Send this for nightly breakdown
         hasMismatch, // ✅ To conditionally render breakdown
@@ -476,12 +481,14 @@ const ReviewBooking = () => {
                 )}
 
                 <hr />
-                {/* <div className="PriceafterDiv">
+                <div className="PriceafterDiv">
                   <div className="leftPriceafter">
                     <h5>Price after Discount</h5>
                   </div>
-                  <div className="rightPriceafter">₹ {finalTotalAfterAgentDiscount.toFixed(2)}</div>
-                </div> */}
+                  <div className="rightPriceafter">
+                    ₹ {finalTotalAfterAgentDiscount.toFixed(2)}
+                  </div>
+                </div>
 
                 {/* <hr /> */}
                 <div className="taxDiv">

@@ -255,6 +255,8 @@ const Checkouts = () => {
     finalAmount,
     newPrice,
     formattedCheckInDate,
+    agentDiscountPercentage,
+    agentDiscountAmount,
     formattedCheckOutDate,
     dateAvailability, // ✅ Send this for nightly breakdown
     hasMismatch, // ✅ To conditionally render breakdown
@@ -262,8 +264,6 @@ const Checkouts = () => {
     finalTotalAfterAgentDiscount, // ✅ Needed for correct GST recalculation if needed
   } = location.state || {};
 
-  console.log("hasMismatch on Checkout page:", hasMismatch);
-  console.log("location.state on Checkout page:", location.state);
 
   // Redirect if any required data is missing
 
@@ -1408,14 +1408,14 @@ const Checkouts = () => {
                       Total Discount{" "}
                       <i
                         className="bi bi-info-circle h6"
-                        onClick={() => alert(`${discountPercentage}% Off`)}
+                        onClick={() => alert(`${agentDiscountPercentage}% Off`)}
                         style={{ cursor: "pointer" }}
                       ></i>
                     </h5>
                   </div>
                   <div className="rightTotalDiscount text-color">
                     {" "}
-                    ₹ {discountPrice.toFixed(2)}
+                    ₹ {agentDiscountAmount.toFixed(2)}
                   </div>
                 </div>
                 <hr />
