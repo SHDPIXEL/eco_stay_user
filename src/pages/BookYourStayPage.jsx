@@ -403,6 +403,16 @@ const BookYourStayPage = () => {
       }
       console.log("room image", selectedImage);
 
+      console.log("book you stay data",checkInDate,
+        checkOutDate,
+        selectedRoomData,
+        selectedOption,
+        selectedPackage,
+        totalPrice,
+        selectedCottages,
+        selectedImage, // Pass image directly
+        dayWiseBookingData,)
+
       navigate("/review-booking", {
         state: {
           checkInDate,
@@ -1023,11 +1033,7 @@ const BookYourStayPage = () => {
                                   handleSelect(
                                     room.id,
                                     option.id,
-                                    option.priceKey === "single_base_price"
-                                      ? room.single_base_price
-                                      : option.priceKey === "double_base_price"
-                                      ? room.double_base_price
-                                      : room.triple_base_price
+                                    option.price
                                   )
                                 }
                                 style={{

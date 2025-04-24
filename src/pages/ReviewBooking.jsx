@@ -88,12 +88,14 @@ const ReviewBooking = () => {
       ? selectedRoom?.double_new_price
       : selectedRoom?.triple_new_price;
 
+
   const basePrice =
     selectedOption === 1
       ? selectedRoom?.single_base_price
-      : selectedRoom === 2
+      : selectedOption === 2
       ? selectedRoom?.double_base_price
       : selectedRoom?.triple_base_price;
+
 
   // const packagePrice = selectedPackage?.package_price || 0;
   const packagePrice = 0;
@@ -228,6 +230,8 @@ const ReviewBooking = () => {
       },
     });
   };
+
+  console.log("checkout data",location.state)
 
   return (
     <div className="padding-x">
