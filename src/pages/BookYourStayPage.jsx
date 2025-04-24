@@ -800,9 +800,27 @@ const BookYourStayPage = () => {
                     <h4 className="model-title">{room.room_name}</h4>
 
                     <ul>
-                      {JSON.parse(room.amenities).map((a, idx) => (
-                        <li key={idx}>{a}</li>
-                      ))}
+                      {(() => {
+                        let amenities = [];
+
+                        try {
+                          const parsed = JSON.parse(room.amenities);
+                          if (Array.isArray(parsed)) {
+                            amenities = parsed;
+                          } else if (typeof parsed === "string") {
+                            amenities = parsed.split(",");
+                          }
+                        } catch (err) {
+                          // If parsing fails, fallback to splitting the plain string
+                          if (typeof room.amenities === "string") {
+                            amenities = room.amenities.split(",");
+                          }
+                        }
+
+                        return amenities.map((a, idx) => (
+                          <li key={idx}>{a.trim()}</li>
+                        ));
+                      })()}
                     </ul>
 
                     <div

@@ -259,7 +259,7 @@ const Home = () => {
             {rooms.slice(0, 3).map((room) => (
               <div className="col-lg-4 mt-4 mb-lg-0">
                 <div className="luximgbox position-relative rounded-img">
-                  {JSON.parse(JSON.parse(room.room_images))
+                  {JSON.parse(room.room_images)
                     .slice(0, 1)
                     .map((image) => (
                       <img
@@ -298,12 +298,33 @@ const Home = () => {
                   <div className="luxboxcontent ">
                     <h3>{room.room_name}</h3>
                     <p className="amenities">
-                      {JSON.parse(room.amenities).map((amenity, idx) => (
-                        <span className="amenities" key={idx}>
-                          <div className="amenities-tags">{amenity}</div>
-                          <br />
-                        </span>
-                      ))}
+                      {(() => {
+                        let amenities = [];
+
+                        try {
+                          const parsed = JSON.parse(room.amenities);
+                          if (Array.isArray(parsed)) {
+                            amenities = parsed;
+                          } else if (typeof parsed === "string") {
+                            // Sometimes it's a single string like "WIFI,AC,TV"
+                            amenities = parsed.split(",");
+                          }
+                        } catch (err) {
+                          // Fallback if amenities is not JSON at all but just "WIFI,AC,TV"
+                          if (typeof room.amenities === "string") {
+                            amenities = room.amenities.split(",");
+                          }
+                        }
+
+                        return amenities.map((amenity, idx) => (
+                          <span className="amenities" key={idx}>
+                            <div className="amenities-tags">
+                              {amenity.trim()}
+                            </div>
+                            <br />
+                          </span>
+                        ));
+                      })()}
                     </p>
                   </div>
                   <div
@@ -354,7 +375,7 @@ const Home = () => {
                 <div className="bookcomfortbox">
                   <div className="topbook">{room.type}</div>
                   <h4>{room.room_name}</h4>
-                  {JSON.parse(JSON.parse(room.room_images))
+                  {JSON.parse(room.room_images)
                     .slice(0, 1)
                     .map((image) => (
                       <img
@@ -365,13 +386,31 @@ const Home = () => {
                   <p>{room.description}</p>
                   <h6>What’s in There for You?</h6>
                   <ul>
-                    {JSON.parse(room.amenities).map((amenity) => (
-                      <li>{amenity}</li>
-                    ))}
+                    {(() => {
+                      let amenities = [];
+
+                      try {
+                        const parsed = JSON.parse(room.amenities);
+                        if (Array.isArray(parsed)) {
+                          amenities = parsed;
+                        } else if (typeof parsed === "string") {
+                          amenities = parsed.split(",");
+                        }
+                      } catch (err) {
+                        if (typeof room.amenities === "string") {
+                          amenities = room.amenities.split(",");
+                        }
+                      }
+
+                      return amenities.map((amenity, index) => (
+                        <li key={index}>{amenity.trim()}</li>
+                      ));
+                    })()}
                     <li>
                       <span>..and nature</span>
                     </li>
                   </ul>
+
                   <div
                     className="bookcombtn"
                     onClick={() => navigate("/book-your-stay")}
@@ -551,12 +590,12 @@ const Home = () => {
         </section>
 
         <div id="testimonial">
-                    <ReviewSlider />
-                </div>
+          <ReviewSlider />
+        </div>
       </div>
       <div id="contact">
-                <ContactSection />
-            </div>
+        <ContactSection />
+      </div>
       <MainFooter />
       <LoginModal
         setLoginModalshow={setLoginModalshow}
