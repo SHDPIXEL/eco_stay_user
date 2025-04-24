@@ -650,10 +650,10 @@ const UserDashboard = () => {
                 let parsedBreakups = [];
 
                 try {
-                  parsedBreakups = JSON.parse(breakup.nightlyBreakups);
+                  parsedBreakups = breakup.nightlyBreakups; // ✅ No need to JSON.parse
                 } catch (err) {
                   console.error(
-                    "Failed to parse nightlyBreakups",
+                    "Failed to read nightlyBreakups",
                     breakup.nightlyBreakups
                   );
                   return null;
@@ -667,7 +667,7 @@ const UserDashboard = () => {
                   const nightInfo = cottageInfo.split("X")[1]?.trim();
                   const date = dateInfo.split("(")[0]?.trim();
                   const amount = amountInfo?.trim();
-
+                  
                   return (
                     <tr key={`${breakup.bookingId}-${idx}`}>
                       {idx === 0 && (
