@@ -189,7 +189,7 @@ const ReviewBooking = () => {
   // Calculate GST based on amount
   const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
   const gstAmount = finalTotalAfterAgentDiscount * gstRate;
-  const finalAmount = finalTotalAfterAgentDiscount + gstAmount;
+  const finalAmount = finalTotalAfterAgentDiscount;
 
   const handlePayAndBook = () => {
     navigate("/checkout", {
