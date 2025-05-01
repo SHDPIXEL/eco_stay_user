@@ -79,7 +79,7 @@ const ReviewBooking = () => {
 
   const agentDiscountPercentage = userType === "agent" ? offers : 0; // Already converted to number
 
-  console.log("agent discount percentage",agentDiscountPercentage)
+  console.log("agent discount percentage", agentDiscountPercentage);
 
   const newPrice =
     selectedOption === 1
@@ -88,14 +88,12 @@ const ReviewBooking = () => {
       ? selectedRoom?.double_new_price
       : selectedRoom?.triple_new_price;
 
-
   const basePrice =
     selectedOption === 1
       ? selectedRoom?.single_base_price
       : selectedOption === 2
       ? selectedRoom?.double_base_price
       : selectedRoom?.triple_base_price;
-
 
   // const packagePrice = selectedPackage?.package_price || 0;
   const packagePrice = 0;
@@ -185,7 +183,7 @@ const ReviewBooking = () => {
     : pricePerNight * totalNights * selectedCottages;
   const agentDiscountAmount = (subtotal * agentDiscountPercentage) / 100;
 
-  console.log("disciouted amount",agentDiscountAmount);
+  console.log("disciouted amount", agentDiscountAmount);
   const finalTotalAfterAgentDiscount = subtotal - agentDiscountAmount; // if no discount, else apply your logic
 
   // Calculate GST based on amount
@@ -220,7 +218,7 @@ const ReviewBooking = () => {
         discountPrice,
         formattedCheckInDate,
         newPrice,
-        agentDiscountPercentage ,
+        agentDiscountPercentage,
         agentDiscountAmount,
         formattedCheckOutDate,
         dateAvailability, // ✅ Send this for nightly breakdown
@@ -231,7 +229,7 @@ const ReviewBooking = () => {
     });
   };
 
-  console.log("checkout data",location.state)
+  console.log("checkout data", location.state);
 
   return (
     <div className="padding-x">
@@ -496,23 +494,25 @@ const ReviewBooking = () => {
 
                 {/* <hr /> */}
                 <div className="taxDiv">
-                  <div className="lefttax">
-                    <h5>
-                      Taxes & Service Fees{" "}
-                      <i
-                        className="bi bi-info-circle h6"
-                        onClick={() =>
-                          alert(
-                            `${
-                              gstRate * 100
-                            }% GST\nService Charges\nBooking Fees\nConvenience Fees`
-                          )
-                        }
-                        style={{ cursor: "pointer" }}
-                      ></i>
-                    </h5>
-                  </div>
-                  <div className="righttax">₹ {gstAmount.toFixed(2)}</div>
+                  <h5
+                    style={{
+                      fontWeight: "normal",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12px",
+                      backgroundColor: "#806A50",
+                      padding: "5px 10px 5px 10px",
+                      borderRadius: "5px",
+                      color: "#fff"
+                    }}
+                  >
+                    <i
+                      className="bi bi-info-circle"
+                      style={{ cursor: "default" }}
+                    ></i>
+                    Taxes & Service Fees are Included in the Total Amount
+                  </h5>
                 </div>
 
                 <hr />

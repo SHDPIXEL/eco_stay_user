@@ -264,7 +264,6 @@ const Checkouts = () => {
     finalTotalAfterAgentDiscount, // ✅ Needed for correct GST recalculation if needed
   } = location.state || {};
 
-
   // Redirect if any required data is missing
 
   const validateForm = (formData) => {
@@ -513,7 +512,7 @@ const Checkouts = () => {
       const { id: booking_id } = result.data.bookingDetails;
 
       const options = {
-        key: "rzp_test_G0gvgyqODDYfyq", // Enter the Key ID generated from the Dashboard
+        key: "rzp_live_CuolPEpEHSapbW", // Enter the Key ID generated from the Dashboard
         amount: amount,
         currency: currency,
         name: "Eco Stay - Vrruksh",
@@ -1429,23 +1428,25 @@ const Checkouts = () => {
                 </div>
                 <hr />
                 <div className="taxDiv">
-                  <div className="lefttax">
-                    <h5>
-                      Taxes & Service Fees{" "}
-                      <i
-                        className="bi bi-info-circle h6"
-                        onClick={() =>
-                          alert(
-                            `${
-                              gstRate * 100
-                            }% GST\nService Charges\nBooking Fees\nConvenience Fees`
-                          )
-                        }
-                        style={{ cursor: "pointer" }}
-                      ></i>
-                    </h5>
-                  </div>
-                  <div className="righttax">₹ {gstAmount.toFixed(2)}</div>
+                  <h5
+                    style={{
+                      fontWeight: "normal",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "12px",
+                      backgroundColor: "#806A50",
+                      padding: "5px 10px 5px 10px",
+                      borderRadius: "5px",
+                      color: "#fff",
+                    }}
+                  >
+                    <i
+                      className="bi bi-info-circle"
+                      style={{ cursor: "default" }}
+                    ></i>
+                    Taxes & Service Fees are Included in the Total Amount
+                  </h5>
                 </div>
                 <hr />
                 <div className="finalamtDiv">
