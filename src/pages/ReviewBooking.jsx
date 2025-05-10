@@ -22,12 +22,11 @@ const ReviewBooking = () => {
     const fetchAgentData = async () => {
       try {
         const response = await API.post("/auth/agent/agent-data");
+        console.log("Offers:", response.data);
         if (userType === "agent") {
-          const agentOffer = response.data.offers
-            ? Number(response.data.offers)
-            : 0;
-          setOffers(agentOffer);
-          console.log("Agent Offer (Discount %):", agentOffer);
+          const rawOffers = response.data.offers || [];
+          setOffers(rawOffers);
+          console.log("raw offers",rawOffers);
         }
       } catch (error) {
         console.error("Error fetching agent data:", error);
@@ -69,6 +68,23 @@ const ReviewBooking = () => {
       })
     : "Not Selected";
 
+  // Helper to parse offers
+  const getAgentDiscount = (offersArray, roomName) => {
+    if (!roomName || !Array.isArray(offersArray)) return 0;
+
+    const offer = offersArray.find((item) => {
+      const [name] = item.split(":");
+      return name.trim().toLowerCase() === roomName.trim().toLowerCase();
+    });
+
+    if (offer) {
+      const [, amount] = offer.split(":");
+      return Number(amount?.trim()) || 0;
+    }
+
+    return 0;
+  };
+
   // Update these variables to use the full room data
   const roomName = selectedRoom?.room_name || "Not Selected";
   const occupancyType =
@@ -77,9 +93,11 @@ const ReviewBooking = () => {
 
   const roomId = selectedRoom?.id || "Not selected";
 
-  const agentDiscountPercentage = userType === "agent" ? offers : 0; // Already converted to number
+  const agentDiscountPercentage =
+    userType === "agent" ? getAgentDiscount(offers, roomName) : 0;
 
-  console.log("agent discount percentage", agentDiscountPercentage);
+  console.log("Selected Room:", roomName);
+  console.log("Agent Discount %:", agentDiscountPercentage);
 
   const newPrice =
     selectedOption === 1
@@ -181,10 +199,10 @@ const ReviewBooking = () => {
         0
       )
     : pricePerNight * totalNights * selectedCottages;
-  const agentDiscountAmount = (subtotal * agentDiscountPercentage) / 100;
+  const agentDiscountAmount =  agentDiscountPercentage;
 
   console.log("disciouted amount", agentDiscountAmount);
-  const finalTotalAfterAgentDiscount = subtotal - agentDiscountAmount; // if no discount, else apply your logic
+  const finalTotalAfterAgentDiscount = subtotal - agentDiscountPercentage; // if no discount, else apply your logic
 
   // Calculate GST based on amount
   const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
@@ -504,7 +522,7 @@ const ReviewBooking = () => {
                       backgroundColor: "#806A50",
                       padding: "5px 10px 5px 10px",
                       borderRadius: "5px",
-                      color: "#fff"
+                      color: "#fff",
                     }}
                   >
                     <i
