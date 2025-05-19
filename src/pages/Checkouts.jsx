@@ -241,6 +241,7 @@ const Checkouts = () => {
     roomName,
     roomId,
     occupancyType,
+    totalAgentDiscount,
     // packageName,
     basePrice,
     // packagePrice,
@@ -265,6 +266,7 @@ const Checkouts = () => {
   } = location.state || {};
 
   // Redirect if any required data is missing
+  // console.log("Total Agent Discount",totalAgentDiscount);
 
   const validateForm = (formData) => {
     const errors = {};
@@ -1407,14 +1409,14 @@ const Checkouts = () => {
                       Total Discount{" "}
                       <i
                         className="bi bi-info-circle h6"
-                        onClick={() => alert(`${agentDiscountPercentage}% Off`)}
+                        onClick={() => alert(`${agentDiscountPercentage} ₹ Off`)}
                         style={{ cursor: "pointer" }}
                       ></i>
                     </h5>
                   </div>
                   <div className="rightTotalDiscount text-color">
                     {" "}
-                    ₹ {agentDiscountAmount.toFixed(2)}
+                    ₹ {totalAgentDiscount}
                   </div>
                 </div>
                 <hr />

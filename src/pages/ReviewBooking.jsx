@@ -26,7 +26,7 @@ const ReviewBooking = () => {
         if (userType === "agent") {
           const rawOffers = response.data.offers || [];
           setOffers(rawOffers);
-          console.log("raw offers",rawOffers);
+          console.log("raw offers", rawOffers);
         }
       } catch (error) {
         console.error("Error fetching agent data:", error);
@@ -159,6 +159,8 @@ const ReviewBooking = () => {
       const available = found ? found.available : selectedCottages;
       const pricePerNightForThisDate = available * pricePerNight;
 
+      console.log("Price Per Night", pricePerNight);
+
       return {
         date,
         available,
@@ -190,8 +192,6 @@ const ReviewBooking = () => {
       ? ((newGrandTotal - grandTotal) / newGrandTotal) * 100
       : 0;
 
-  // const agentDiscountAmount = 0;
-
   // Calculate subtotal based on actual nightly availability
   const subtotal = hasMismatch
     ? effectiveDates.reduce(
@@ -199,10 +199,17 @@ const ReviewBooking = () => {
         0
       )
     : pricePerNight * totalNights * selectedCottages;
-  const agentDiscountAmount =  agentDiscountPercentage;
+  const agentDiscountAmount = agentDiscountPercentage;
+  // const agentDiscountAmount = 0;
+  const daysCount = effectiveDates?.length || 0;
+  const totalAgentDiscount = (
+    agentDiscountAmount *
+    selectedCottages *
+    daysCount
+  ).toFixed(2);
 
   console.log("disciouted amount", agentDiscountAmount);
-  const finalTotalAfterAgentDiscount = subtotal - agentDiscountPercentage; // if no discount, else apply your logic
+  const finalTotalAfterAgentDiscount = subtotal - totalAgentDiscount; // if no discount, else apply your logic
 
   // Calculate GST based on amount
   const gstRate = finalTotalAfterAgentDiscount <= 7500 ? 0.12 : 0.18;
@@ -210,6 +217,7 @@ const ReviewBooking = () => {
   const finalAmount = finalTotalAfterAgentDiscount;
 
   const handlePayAndBook = () => {
+    // console.log("Total Agent Dis",totalAgentDiscount);
     navigate("/checkout", {
       state: {
         checkInDate,
@@ -218,6 +226,7 @@ const ReviewBooking = () => {
         selectedOption,
         selectedPackage,
         selectedCottages,
+        totalAgentDiscount,
         roomName,
         roomId,
         occupancyType,
@@ -487,15 +496,13 @@ const ReviewBooking = () => {
                         Agent Discount{" "}
                         <i
                           className="bi bi-info-circle h6"
-                          onClick={() =>
-                            alert(`${agentDiscountPercentage}% Off`)
-                          }
+                          onClick={() => alert(`${agentDiscountPercentage} ₹ OFF`)}
                           style={{ cursor: "pointer" }}
                         ></i>
                       </h5>
                     </div>
                     <div className="rightTotalDiscount text-color">
-                      ₹ {agentDiscountAmount.toFixed(2)}
+                      ₹ {totalAgentDiscount}
                     </div>
                   </div>
                 )}
